@@ -1,0 +1,919 @@
+<title>GM Dental Group — Domination Hub</title>
+<style>
+  :root{
+    --bg:#f7f9fa; --surface:#ffffff; --ink:#0e2233; --ink-2:#44586a; --ink-3:#7a8b99;
+    --accent:#0e7d7d; --accent-ink:#0a5c5c; --accent-soft:#e2f1f0;
+    --gold:#a87f2c; --gold-soft:#f6efdf;
+    --red:#b3382e; --red-soft:#f9e8e6;
+    --green:#2e7d43; --green-soft:#e7f3ea;
+    --amber:#a06a10; --amber-soft:#f8efdc;
+    --line:#dde5ea; --card-shadow:0 1px 3px rgba(14,34,51,.08);
+    --navy:#0e2233;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1a26; --surface:#13283a; --ink:#e8eef2; --ink-2:#a9bac7; --ink-3:#748899;
+    --accent:#3db8b0; --accent-ink:#5fd0c8; --accent-soft:#123a3d;
+    --gold:#d4a94e; --gold-soft:#31281263;
+    --red:#e07067; --red-soft:#3a1d1a;
+    --green:#5cb877; --green-soft:#16301d;
+    --amber:#d99a3a; --amber-soft:#33260e;
+    --line:#23394b; --card-shadow:0 1px 3px rgba(0,0,0,.4);
+    --navy:#0c1a26;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0c1a26; --surface:#13283a; --ink:#e8eef2; --ink-2:#a9bac7; --ink-3:#748899;
+      --accent:#3db8b0; --accent-ink:#5fd0c8; --accent-soft:#123a3d;
+      --gold:#d4a94e; --gold-soft:#31281263;
+      --red:#e07067; --red-soft:#3a1d1a;
+      --green:#5cb877; --green-soft:#16301d;
+      --amber:#d99a3a; --amber-soft:#33260e;
+      --line:#23394b; --card-shadow:0 1px 3px rgba(0,0,0,.4);
+      --navy:#0c1a26;
+    }
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--ink); font:16px/1.6 "Gill Sans","Segoe UI",system-ui,-apple-system,sans-serif; margin:0; -webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{line-height:1.2; text-wrap:balance; font-weight:650}
+  h1{font-size:clamp(1.9rem,4vw,2.9rem); margin:.2em 0}
+  h2{font-size:1.5rem; margin:0 0 .5em}
+  h3{font-size:1.12rem; margin:0 0 .4em}
+  a{color:var(--accent-ink)}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px}
+  .eyebrow{font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-ink); font-weight:700}
+  .muted{color:var(--ink-2)}
+  .small{font-size:.85rem}
+
+  header.hero{background:linear-gradient(160deg,#0e2233 0%,#123a45 70%,#0e7d7d 130%); color:#f2f7f8; padding:56px 0 44px}
+  header.hero .eyebrow{color:#7fd4cd}
+  header.hero p{max-width:62ch; color:#c6d6dc}
+  .hero-stats{display:flex; flex-wrap:wrap; gap:14px; margin-top:26px}
+  .hstat{background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); border-radius:8px; padding:12px 18px; min-width:150px}
+  .hstat b{display:block; font-size:1.5rem; font-variant-numeric:tabular-nums}
+  .hstat span{font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:#9fc3c6}
+
+  nav.toc{position:sticky; top:0; z-index:50; background:var(--surface); border-bottom:1px solid var(--line); overflow-x:auto}
+  nav.toc ul{display:flex; gap:4px; list-style:none; margin:0; padding:8px 20px; max-width:1180px; margin-inline:auto; white-space:nowrap}
+  nav.toc a{display:block; padding:7px 13px; border-radius:6px; text-decoration:none; color:var(--ink-2); font-size:.88rem; font-weight:600}
+  nav.toc a:hover,nav.toc a:focus-visible{background:var(--accent-soft); color:var(--accent-ink); outline:none}
+
+  section{padding:52px 0 8px}
+  .section-head{margin-bottom:26px}
+  .grid{display:grid; gap:18px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:20px 22px; box-shadow:var(--card-shadow)}
+  .card h3{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+
+  .pill{display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:999px}
+  .pill.p1{background:var(--red-soft); color:var(--red)}
+  .pill.p2{background:var(--amber-soft); color:var(--amber)}
+  .pill.p3{background:var(--accent-soft); color:var(--accent-ink)}
+  .pill.hold{background:var(--gold-soft); color:var(--gold)}
+  .pill.tbc{background:var(--line); color:var(--ink-2)}
+  .pill.live{background:var(--green-soft); color:var(--green)}
+
+  table{border-collapse:collapse; width:100%; font-size:.9rem}
+  th{text-align:left; font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); padding:8px 12px; border-bottom:2px solid var(--line)}
+  td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  td.num{font-variant-numeric:tabular-nums; text-align:right}
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--surface)}
+  .tablewrap table{min-width:720px}
+
+  .score{display:inline-block; min-width:2.4em; text-align:center; font-weight:700; font-variant-numeric:tabular-nums; border-radius:6px; padding:1px 6px}
+  .s-hi{background:var(--red-soft); color:var(--red)}
+  .s-mid{background:var(--amber-soft); color:var(--amber)}
+  .s-lo{background:var(--green-soft); color:var(--green)}
+
+  .ad{background:var(--surface); border:1px solid var(--line); border-left:4px solid var(--accent); border-radius:10px; padding:18px 20px; margin-bottom:16px}
+  .ad .meta-row{display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap}
+  .ad .hook{font-size:1.06rem; font-weight:700; margin:.5em 0 .3em}
+  .ad .body-copy{color:var(--ink-2); margin:0 0 .6em}
+  .ad .specs{font-size:.8rem; color:var(--ink-3); border-top:1px dashed var(--line); padding-top:10px; margin-top:10px}
+  .ad .specs b{color:var(--ink-2)}
+  .cta-chip{display:inline-block; background:var(--accent); color:#fff; font-size:.8rem; font-weight:700; padding:5px 14px; border-radius:6px}
+  :root[data-theme="dark"] .cta-chip{color:#06201f}
+
+  button.copy{background:var(--accent-soft); color:var(--accent-ink); border:1px solid var(--accent); font:inherit; font-size:.78rem; font-weight:700; padding:5px 12px; border-radius:6px; cursor:pointer}
+  button.copy:hover,button.copy:focus-visible{background:var(--accent); color:#fff; outline:none}
+  button.copy.done{background:var(--green-soft); color:var(--green); border-color:var(--green)}
+
+  details{background:var(--surface); border:1px solid var(--line); border-radius:10px; margin-bottom:12px}
+  details summary{cursor:pointer; padding:14px 18px; font-weight:650; list-style-position:inside}
+  details summary:hover{color:var(--accent-ink)}
+  details .inner{padding:2px 20px 18px; border-top:1px solid var(--line)}
+  details pre{white-space:pre-wrap; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:14px; font:.85rem/1.55 ui-monospace,Menlo,Consolas,monospace; overflow-x:auto}
+
+  .kwd{display:inline-block; background:var(--bg); border:1px solid var(--line); border-radius:5px; padding:2px 9px; font:.8rem ui-monospace,Menlo,monospace; margin:2px}
+  ol.headlines{columns:2; column-gap:34px; padding-left:1.4em; margin:.4em 0}
+  ol.headlines li{break-inside:avoid; padding:2px 0}
+  @media (max-width:700px){ol.headlines{columns:1}}
+
+  .asset-link{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; border:1px solid var(--line); border-radius:8px; text-decoration:none; color:var(--ink); background:var(--surface); margin-bottom:8px; font-weight:600}
+  .asset-link:hover{border-color:var(--accent)}
+  .asset-link .go{color:var(--accent-ink); font-size:.82rem; white-space:nowrap}
+  .asset-link small{display:block; font-weight:400; color:var(--ink-3)}
+
+  .callout{border-radius:10px; padding:18px 22px; margin:18px 0}
+  .callout.warn{background:var(--red-soft); border:1px solid var(--red)}
+  .callout.win{background:var(--green-soft); border:1px solid var(--green)}
+  .callout.gold{background:var(--gold-soft); border:1px solid var(--gold)}
+
+  .timeline{border-left:3px solid var(--accent); padding-left:22px; margin-left:8px}
+  .tl-item{position:relative; padding-bottom:22px}
+  .tl-item::before{content:""; position:absolute; left:-30px; top:6px; width:13px; height:13px; border-radius:50%; background:var(--accent); border:3px solid var(--bg)}
+  .tl-item b.wk{color:var(--accent-ink); font-size:.78rem; letter-spacing:.1em; text-transform:uppercase}
+
+  .practice-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; border-bottom:2px solid var(--accent); padding-bottom:8px; margin:38px 0 18px}
+  .practice-head h3{font-size:1.3rem; margin:0}
+
+  footer{margin-top:60px; padding:30px 0 44px; border-top:1px solid var(--line); color:var(--ink-3); font-size:.85rem}
+  @media (prefers-reduced-motion: no-preference){
+    .card,.ad{transition:transform .12s ease}
+  }
+</style>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">GM Dental Group · Five Practices · Kent &amp; North London</div>
+    <h1>Domination Hub — everything, launch-ready, one page</h1>
+    <p>The complete operational command centre: every practice, every competitor, every Meta ad, every Google campaign, every caption, SMS and email — with copy buttons so your team can deploy today. Target: <strong style="color:#7fd4cd">Diamond Apex inside 90 days.</strong></p>
+    <div class="hero-stats">
+      <div class="hstat"><b>5</b><span>Practices covered</span></div>
+      <div class="hstat"><b>14</b><span>Meta ads ready</span></div>
+      <div class="hstat"><b>5</b><span>Google campaigns</span></div>
+      <div class="hstat"><b>12</b><span>Canva designs</span></div>
+      <div class="hstat"><b>£800</b><span>Week-1 proof budget</span></div>
+      <div class="hstat"><b>400+</b><span>Cases/yr = Apex</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#practices">Practices</a></li>
+    <li><a href="#scorecard">Competitors</a></li>
+    <li><a href="#meta-ads">Meta Ads</a></li>
+    <li><a href="#google-ads">Google Ads</a></li>
+    <li><a href="#organic">Captions · SMS · Email</a></li>
+    <li><a href="#creative">Canva &amp; Gamma</a></li>
+    <li><a href="#launch">90-Day Launch</a></li>
+    <li><a href="#kpi">Budget &amp; KPIs</a></li>
+  </ul>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ PRACTICES ============ -->
+<section id="practices">
+  <div class="section-head">
+    <div class="eyebrow">Coverage</div>
+    <h2>All five practices — status and battle plan</h2>
+    <p class="muted" style="max-width:70ch">Every practice in the group is covered below. Rye is deliberately on hold (no capital investment), and Practice&nbsp;3 needs its location confirmed to finish its teardown — everything else is fully loaded with ads, keywords and creative.</p>
+  </div>
+  <div class="grid g3">
+    <div class="card">
+      <h3>GM Dental Ashford <span class="pill p1">Priority 1</span></h3>
+      <p class="small muted">Ashford, Kent TN24 · Invisalign spearhead</p>
+      <p class="small">The Aligndent gap: the local Diamond Apex rival has DR 1.9, 29 Google reviews, zero paid ads and charges £60 for consultations. Free-consult + always-on ads takes this market.</p>
+      <p class="small"><b>Assets ready:</b> 6 Meta ads · 2 Google campaigns · 8 Canva designs · 2 Reel scripts</p>
+    </div>
+    <div class="card">
+      <h3>Warwick Lodge, Herne Bay <span class="pill p2">Priority 2</span></h3>
+      <p class="small muted">Herne Bay, Kent CT6 · Implant hub</p>
+      <p class="small">RCS-trained implant dentist on site; 150k people within 15 miles. EvoDental Dartford does full-arch only — single/multiple implants locally are wide open. Free CT scan (worth £250) is the hook.</p>
+      <p class="small"><b>Assets ready:</b> 5 Meta ads · 2 Google campaigns · 4 Canva designs</p>
+    </div>
+    <div class="card">
+      <h3>GM Dental Barnet <span class="pill p3">Priority 3</span></h3>
+      <p class="small muted">Barnet / Finchley, North London · Highest fees</p>
+      <p class="small">Smile Cliniq (DR 40) leads on SEO but North London fees run 40–60% higher than Kent. Launch paid before organic; professional 28–55 audience, evening/weekend appointments as differentiator.</p>
+      <p class="small"><b>Assets ready:</b> 3 Meta ads · 1 Google campaign</p>
+    </div>
+    <div class="card">
+      <h3>Rye Dental Surgery <span class="pill hold">Hold</span></h3>
+      <p class="small muted">Rye, East Sussex TN31 · Half-owned</p>
+      <p class="small">Deliberate decision: do <b>not</b> invest capital here. Small catchment, weak demographics for aligner volume. Run the review-SMS machine and refer Invisalign enquiries to Ashford — its case starts still count toward group Apex numbers.</p>
+    </div>
+    <div class="card">
+      <h3>Practice 5 <span class="pill tbc">Location TBC</span></h3>
+      <p class="small muted">Awaiting postcode confirmation</p>
+      <p class="small">Send the postcode and the full competitive teardown, ad set and keyword plan gets added within one working session. Its case starts count toward the group total either way.</p>
+    </div>
+    <div class="card" style="border-color:var(--gold)">
+      <h3>Group Apex Play <span class="pill live">£150–200k/yr</span></h3>
+      <p class="small">Ask your Align Territory Manager whether the 5-practice group can <b>aggregate case counts as one entity</b>. 400+ combined cases/year = Diamond Apex group-wide ≈ 46% lab discount ≈ £150–200k/year saved. This is the single highest-value phone call in this plan.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SCORECARD ============ -->
+<section id="scorecard">
+  <div class="section-head">
+    <div class="eyebrow">Competitive intelligence · verified June 2026</div>
+    <h2>Competitor scorecard — all seven, rated</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>Competitor</th><th>Market</th><th class="num">DR</th><th>Pricing lead</th><th>Ads live?</th><th class="num">Threat /10</th><th>Their weakness → our move</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><b>Banning Dental</b></td><td>Multi-site</td><td class="num">—</td><td>from £1,995 · £15.74/mo</td><td>Yes — Google + Meta</td><td class="num"><span class="score s-hi">8.5</span></td><td>Chain feel, no named clinician → out-personal-brand them with Dr Gaurav</td></tr>
+        <tr><td><b>Parrock Dental</b></td><td>Gravesend</td><td class="num">11</td><td>from £1,495 · £1.70/day All-on-4</td><td>Yes + Kent radio</td><td class="num"><span class="score s-hi">7.5</span></td><td>DR only 11 despite 28yr brand → beat them on local SEO + review velocity</td></tr>
+        <tr><td><b>Smile Cliniq</b></td><td>North London</td><td class="num">40</td><td>Premium positioning</td><td>Yes — Google</td><td class="num"><span class="score s-mid">7</span></td><td>Premium price umbrella → undercut with free consult + finance framing in Barnet</td></tr>
+        <tr><td><b>Romney House</b></td><td>Ashford</td><td class="num">10</td><td>from £2,995 (disc. from ~£4,210)</td><td><b>Yes — Ashford FB ads NOW</b></td><td class="num"><span class="score s-mid">6</span></td><td>Discount-led, thin reviews → match speed, win on Diamond credential + proof</td></tr>
+        <tr><td><b>Ruh Dental</b></td><td>London</td><td class="num">24</td><td>Lite £3,699 · money-back 8wks</td><td>Yes</td><td class="num"><span class="score s-mid">6</span></td><td>No Kent presence → irrelevant outside Barnet; watch their guarantee messaging</td></tr>
+        <tr><td><b>EvoDental</b></td><td>Dartford (Jun 26)</td><td class="num">32</td><td>from £9,300/arch, full-arch only</td><td>Yes — heavy</td><td class="num"><span class="score s-lo">5</span></td><td>Full-arch ONLY → own single/multiple implants in Herne Bay (Ad 9 &amp; 10)</td></tr>
+        <tr><td><b>Aligndent</b></td><td>Ashford</td><td class="num">1.9</td><td>£3,950 both arches · <b>£60 consult fee</b></td><td><b>No — zero ads</b></td><td class="num"><span class="score s-lo">4</span></td><td>Diamond Apex but invisible: 29 reviews, 135 IG followers → take Ashford in 90 days</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout warn">
+    <b>Live threat:</b> Romney House is running "Save £1,215 on Invisalign Ashford" Facebook ads in your primary catchment <em>right now</em>. Every week without your ads live is enquiries going to them.
+  </div>
+  <div class="callout win">
+    <b>Our gaps to close (self-assessment):</b> gmdentalashford.co.uk DR 0 (2 pages indexed) · gmdentalbarnet.co.uk DR 0 · no paid ads running · no per-month pricing shown anywhere · no dedicated treatment landing pages · Cloudflare 403s may be blocking search crawlers — have your web developer whitelist Googlebot this week. Strengths: Ashford review base (320+ Trustpilot, 457 DocDental), parent domain gm-dental.co.uk DR 36, RCS implant credential.
+  </div>
+</section>
+
+<!-- ============ META ADS ============ -->
+<section id="meta-ads">
+  <div class="section-head">
+    <div class="eyebrow">Deploy in Meta Ads Manager · copy buttons on every ad</div>
+    <h2>Facebook &amp; Instagram ads — all 14, ready to paste</h2>
+    <p class="muted small">Replace £X with your live pricing before launch. Targeting and visual direction included under each ad. Deploy order: Ad 1 → Ad 7 → Ad 3.</p>
+  </div>
+
+  <div class="practice-head"><h3>GM Dental Ashford — Invisalign</h3><span class="pill p1">6 ads</span></div>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 1 — The Competitor Contrast <span class="pill live">Deploy first</span></b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Ashford's Invisalign consultation costs £60 before you've even started.</p>
+      <p class="body-copy">Not at GM Dental. Your first consultation is completely free — no upfront fee, no obligation, no pressure. We'll show you exactly what your smile could look like using our 3D digital scanner, then let you decide. Meanwhile, the clock elsewhere is already ticking at £60.</p>
+      <span class="cta-chip">Book Your FREE Consultation</span>
+    </div>
+    <p class="specs"><b>Target:</b> Ashford +10mi · 25–55 · teeth straightening, cosmetic dentistry, Invisalign · <b>Visual:</b> split screen — £60 in red vs £0 in teal, GM branding right · <b>Canva:</b> <a href="https://www.canva.com/d/ufYHb46HhFzMiGk">design ready →</a></p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 2 — The Diamond Credential</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Most Ashford dentists offer Invisalign. Very few are Diamond certified.</p>
+      <p class="body-copy">GM Dental is one of a tiny number of Diamond Invisalign providers in Kent — meaning we've completed more cases than 95% of practices nationally. That experience shows in your results. Free consultation, digital smile preview before you commit, flexible finance from £X/month.</p>
+      <span class="cta-chip">See Your New Smile — Free Scan</span>
+    </div>
+    <p class="specs"><b>Target:</b> Ashford + Canterbury + Folkestone · 28–55 · homeowners, higher income · <b>Visual:</b> Diamond badge prominent, teal/white, before/after in background</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 3 — Appointment Scarcity <span class="pill p2">Retargeting</span></b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">We have 4 free Invisalign consultations left in Ashford this month.</p>
+      <p class="body-copy">We keep our consultation slots limited so every patient gets proper time — not a 10-minute conveyor belt. If you've been thinking about Invisalign, this is your window. Free 3D scan included. Finance from £X/month. Appointments are going fast.</p>
+      <span class="cta-chip">Claim Your Free Slot →</span>
+    </div>
+    <p class="specs"><b>Target:</b> retargeting — site visitors, video viewers, patient lookalike, TN24 radius · <b>Visual:</b> calendar with dates crossed out, teal CTA bar</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 4 — Monthly Payment Frame</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Your new smile could cost less than your Netflix, gym, and coffee combined.</p>
+      <p class="body-copy">Invisalign at GM Dental Ashford from just £X per month with 0% finance. No lump sum. No hidden extras. Just a straighter smile and a payment you barely notice. Free consultation — find out if you're a candidate in 30 minutes.</p>
+      <span class="cta-chip">See If You Qualify — Free Today</span>
+    </div>
+    <p class="specs"><b>Target:</b> 25–45 · personal finance, lifestyle, self-improvement · <b>Visual:</b> text graphic, monthly breakdown, teal on white, no stock photo</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 5 — Before/After Social Proof</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">[Patient first name]'s smile changed everything. Ashford. 14 months.</p>
+      <p class="body-copy">She came in not knowing if she was even a candidate. Walked out with a free 3D preview of her result on the same day. 14 months later — the photo says the rest. Free consultation at GM Dental Ashford. See what's possible for you.</p>
+      <span class="cta-chip">Book Your Free Preview</span>
+    </div>
+    <p class="specs"><b>Target:</b> women 28–50, Ashford + Kent, patient lookalike · <b>Visual:</b> authentic patient before/after, natural light — signed consent required</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 6 — Seasonal Drop (run quarterly)</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Our lowest Invisalign offer of 2026 — Ashford only — this month.</p>
+      <p class="body-copy">For the first time this year, we're running a limited Invisalign promotion at GM Dental Ashford. Free 3D digital scan (worth £X). Free consultation. Free retainers. Finance from £X/month. Appointments open Monday. We have [X] spaces.</p>
+      <span class="cta-chip">Claim Offer — Ends [Date]</span>
+    </div>
+    <p class="specs"><b>Target:</b> broad Ashford + TN postcodes · 24–55 · <b>Visual:</b> bold promo, date countdown, high-contrast teal/navy</p>
+  </article>
+
+  <div class="practice-head"><h3>Warwick Lodge, Herne Bay — Implants</h3><span class="pill p2">5 ads</span></div>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 7 — Daily Cost Frame <span class="pill live">Deploy first</span></b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Missing teeth? It could be fixed for less than £X a day.</p>
+      <p class="body-copy">At Warwick Lodge Dental in Herne Bay, dental implants start from just £X per day on flexible finance. Fixed for life. No removable plates. No adhesive. Just permanent teeth that feel exactly like your own. Free consultation + free CT scan (worth £250) — limited appointments this month.</p>
+      <span class="cta-chip">Claim Free CT Scan — Worth £250</span>
+    </div>
+    <p class="specs"><b>Target:</b> 45–70 · Herne Bay, Canterbury, Whitstable, Faversham · dentures, missing teeth · <b>Visual:</b> before/after split, navy/gold premium · <b>Canva:</b> <a href="https://www.canva.com/d/6jg47ROkCetJWh3">design ready →</a></p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 8 — Free CT Scan Lead Magnet</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Get a FREE £250 CT scan — and know exactly what's possible for your smile.</p>
+      <p class="body-copy">At Warwick Lodge Dental &amp; Implant Centre in Herne Bay, we don't guess. Before any recommendation, we use a full CT scan (normally £250 — free for new implant patients) to map exactly where your implants can go and what the result will look like. RCS-trained specialist on site. Single implants, multiple implants, full arch — we do it all.</p>
+      <span class="cta-chip">Book Free CT Scan →</span>
+    </div>
+    <p class="specs"><b>Target:</b> Herne Bay → Maidstone · 45–70 · <b>Visual:</b> clean CT imagery, specialist in background, navy/gold</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 9 — Local vs Chain (counters EvoDental)</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Some implant clinics do full arch only. We do everything — and we're right here in Herne Bay.</p>
+      <p class="body-copy">Unlike dental chains that treat one procedure only, Warwick Lodge is your local Herne Bay specialist. RCS-trained implant dentist. Single implants. Multiple implants. Full arch same-day. And because we do Invisalign too — your whole smile, one team, one practice. Free consultation + free CT scan.</p>
+      <span class="cta-chip">Meet Your Local Specialist</span>
+    </div>
+    <p class="specs"><b>Target:</b> Herne Bay + Canterbury + Whitstable · 45–65 · homeowners · <b>Visual:</b> local/warm, named specialist photo</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 10 — The Single Implant</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Missing one tooth? You don't need a full arch. Just one implant.</p>
+      <p class="body-copy">Most implant chains only do full mouth treatment. At Warwick Lodge Herne Bay, we do single implants from £X — one tooth, permanently replaced, no disruption to surrounding teeth. Looks and feels like your own. RCS-trained specialist. Free consultation to find out if you're a candidate.</p>
+      <span class="cta-chip">Free Implant Assessment →</span>
+    </div>
+    <p class="specs"><b>Target:</b> 35–65 · East Kent · <b>Visual:</b> single-tooth concept, clean white/navy</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 11 — Patient Transformation</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">David hadn't smiled for 8 years. Herne Bay. One day.</p>
+      <p class="body-copy">He came to Warwick Lodge Dental having lived with missing teeth for almost a decade. Within a single day, he walked out with a full set of fixed, permanent teeth — and a smile he hasn't been able to stop showing off. If you're living with missing teeth, your day is possible too. Free consultation + free CT scan at Warwick Lodge.</p>
+      <span class="cta-chip">Book Your Free Consultation</span>
+    </div>
+    <p class="specs"><b>Target:</b> 45–65 Kent, patient lookalike · <b>Visual:</b> authentic patient video testimonial (consent) or "day in treatment" concept</p>
+  </article>
+
+  <div class="practice-head"><h3>GM Dental Barnet — North London</h3><span class="pill p3">3 ads</span></div>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 12 — The North London Professional</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">The Finchley Invisalign consultation that doesn't cost you £60.</p>
+      <p class="body-copy">GM Dental Barnet offers free Invisalign consultations — no deposit, no upfront fee. With a Diamond Invisalign Provider on your doorstep in Barnet, there's no reason to pay to find out if you're a candidate. Book online. Finance from £X/month. Evening and weekend appointments available.</p>
+      <span class="cta-chip">Book Free — Barnet/Finchley</span>
+    </div>
+    <p class="specs"><b>Target:</b> N3, N12, Finchley, Whetstone, East Barnet · 28–55 professionals · <b>Visual:</b> smart North London aesthetic, teal/navy</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 13 — Finance Monthly Frame</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">North London Invisalign. Less than £X a month. No deposit.</p>
+      <p class="body-copy">GM Dental Barnet. Diamond Invisalign Provider. Free consultation to find out if you're a candidate. 0% finance from just £X/month — no large upfront cost. See your digital result before you commit. Evening appointments available. Start when you're ready.</p>
+      <span class="cta-chip">Find Out If You Qualify — Free</span>
+    </div>
+    <p class="specs"><b>Target:</b> N2–N20, EN4–EN5 · 28–50 · <b>Visual:</b> aspirational, monthly payment prominent</p>
+  </article>
+
+  <article class="ad">
+    <div class="meta-row"><b>AD 14 — Before/After North London</b><button class="copy">Copy ad</button></div>
+    <div class="copyblock">
+      <p class="hook">Finchley. 16 months. One decision changed everything.</p>
+      <p class="body-copy">Our patient was embarrassed to smile at work. Now she can't stop. GM Dental Barnet — Diamond Invisalign Provider in Barnet/Finchley. Free consultation includes your digital smile preview. Finance from £X/month. Find out what's possible for you.</p>
+      <span class="cta-chip">See My New Smile — Free Preview</span>
+    </div>
+    <p class="specs"><b>Target:</b> N3, N12, N14 · women 28–48 professionals · <b>Visual:</b> authentic before/after, relatable North London lifestyle</p>
+  </article>
+
+  <div class="callout gold">
+    <b>Dr Gaurav personal brand — post before you spend a penny:</b> Reel 1 "The £60 Consultation Trap" (30–45s face-to-camera script in the details below) goes out organically this week, then boost with £20/day once it gets engagement. It's free reach and it primes every paid ad above.
+  </div>
+  <details>
+    <summary>Reel 1 script — "The £60 Consultation Trap" <span class="pill live">this week</span></summary>
+    <div class="inner"><pre>"I'm going to tell you something your local Invisalign provider probably
+doesn't want you to know. Some practices in Kent charge you £60 just to
+come in and find out if you're even a candidate. Before treatment starts.
+Before they've done anything. Just to have a conversation.
+
+At GM Dental, that consultation is free. Always has been. You come in,
+we do a 3D digital scan of your teeth, you see what your smile could
+look like, and then — only then — do you decide if Invisalign is right
+for you. No upfront cost. No pressure. Just information.
+
+And that's how it should work. Link in bio to book yours."
+
+Format: face-on, clean background, warm. 30–45 seconds. Post organic first.
+Hashtags: #invisalign #invisalignashford #dentistkent #cosmeticdentist
+#ashforddentist #invisalignuk</pre></div>
+  </details>
+  <details>
+    <summary>Reel 2 script — "5 Things Nobody Tells You About Invisalign"</summary>
+    <div class="inner"><pre>"Five things your dentist probably won't tell you about Invisalign before
+you start. One: not every dentist has the same skill level — there are five
+tiers of Invisalign providers and the top two have placed more cases than
+95% of dentists nationally. Two: the consultation should always be free.
+If you're being charged to attend a consultation, walk out. Three: you
+should see your digital result before you pay a penny. Four: 0% finance
+means you can start for less than your monthly gym membership. Five: the
+best time to start is right now, because Invisalign takes time to work and
+your future self will thank you.
+
+I'm Dr Gaurav Mehta at GM Dental. Free consultation link in bio."
+
+Format: fast list, quick cuts or text overlays. 45–60s. Post Wed/Thu.</pre></div>
+  </details>
+</section>
+
+<!-- ============ GOOGLE ADS ============ -->
+<section id="google-ads">
+  <div class="section-head">
+    <div class="eyebrow">Deploy in Google Ads · responsive search ads</div>
+    <h2>Google campaigns — 5 complete, keywords + headlines + descriptions</h2>
+    <p class="muted small">Every headline is ≤30 characters, every description ≤90. Launch order: Campaign 2 (Herne Bay implants — lowest competition, highest value) → Campaign 5 → Campaign 1.</p>
+  </div>
+
+  <details open>
+    <summary>Campaign 1 — Invisalign Ashford <span class="pill p1">high competition — launch after landing page</span></summary>
+    <div class="inner">
+      <p class="small"><b>Landing page:</b> /ads/invisalign-ashford/ &nbsp;·&nbsp; <button class="copy">Copy campaign</button></p>
+      <div class="copyblock">
+        <p class="small"><b>Keywords:</b> <span class="kwd">[invisalign ashford]</span> <span class="kwd">[invisalign ashford kent]</span> <span class="kwd">"teeth straightening ashford"</span> <span class="kwd">"clear braces ashford"</span> <span class="kwd">"orthodontist ashford kent"</span> <span class="kwd">"cosmetic dentist ashford invisalign"</span></p>
+        <p class="small" style="margin-bottom:.2em"><b>Headlines (≤30 chars):</b></p>
+        <ol class="headlines small">
+          <li>Free Invisalign — Ashford</li><li>No £60 Consult Fee — Ever</li><li>Ashford Diamond Invisalign</li><li>From £X/Month 0% Finance</li><li>Book Online — Ashford</li><li>See Smile Before You Start</li><li>Free 3D Digital Smile Preview</li><li>Top 1% Invisalign Provider</li><li>Straighter Teeth Ashford</li><li>Call — Free Consultation</li><li>No Upfront Cost — Book Free</li><li>GM Dental Ashford</li>
+        </ol>
+        <p class="small" style="margin-bottom:.2em"><b>Descriptions (≤90 chars):</b></p>
+        <ul class="small">
+          <li>Free consultation — no £60 fee. Diamond Invisalign in Ashford Kent. Book online today.</li>
+          <li>See your exact result before you commit — free 3D scan at GM Dental Ashford. Finance from £X/mo.</li>
+          <li>Ashford's Diamond Invisalign specialist. Free consultation, 0% finance, digital preview included.</li>
+          <li>Join hundreds of Ashford patients with straighter smiles. Free scan, no obligation, book now.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details open>
+    <summary>Campaign 2 — Dental Implants Herne Bay <span class="pill live">launch first — lowest competition, highest value</span></summary>
+    <div class="inner">
+      <p class="small"><b>Landing page:</b> /ads/dental-implants-herne-bay/ &nbsp;·&nbsp; <button class="copy">Copy campaign</button></p>
+      <div class="copyblock">
+        <p class="small"><b>Keywords:</b> <span class="kwd">[dental implants herne bay]</span> <span class="kwd">"dental implants kent"</span> <span class="kwd">"missing teeth herne bay"</span> <span class="kwd">[implant dentist herne bay]</span> <span class="kwd">"dental implants whitstable"</span> <span class="kwd">"dental implants canterbury"</span> <span class="kwd">[tooth implant herne bay]</span> <span class="kwd">"single dental implant kent"</span></p>
+        <p class="small" style="margin-bottom:.2em"><b>Headlines:</b></p>
+        <ol class="headlines small">
+          <li>Free CT Scan — Worth £250</li><li>Dental Implants Herne Bay</li><li>RCS Implant Specialist Kent</li><li>Missing Teeth? Fixed For Life</li><li>From £X Per Day On Finance</li><li>Single + Full Arch Implants</li><li>Free Implant Consultation</li><li>Warwick Lodge — Herne Bay</li><li>Same Day Smile Available</li><li>Local Expert — Not A Chain</li><li>Free Consultation + CT Scan</li><li>0% Finance Available</li>
+        </ol>
+        <p class="small" style="margin-bottom:.2em"><b>Descriptions:</b></p>
+        <ul class="small">
+          <li>Free CT scan (worth £250) + free implant consultation at Warwick Lodge, Herne Bay. RCS specialist.</li>
+          <li>Single implants from £X. Full arch same-day available. Herne Bay, Canterbury, Whitstable.</li>
+          <li>Not a chain. Your named RCS-trained implant specialist in Herne Bay. Free consult — book today.</li>
+          <li>Missing teeth fixed permanently from £X/day on 0% finance. Free CT scan included. Call us.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Campaign 3 — Invisalign Barnet / Finchley</summary>
+    <div class="inner">
+      <p class="small"><b>Landing page:</b> /ads/invisalign-barnet/ &nbsp;·&nbsp; <button class="copy">Copy campaign</button></p>
+      <div class="copyblock">
+        <p class="small"><b>Keywords:</b> <span class="kwd">[invisalign finchley]</span> <span class="kwd">[invisalign barnet]</span> <span class="kwd">"invisalign north london"</span> <span class="kwd">"cosmetic dentist barnet"</span> <span class="kwd">"teeth straightening finchley"</span> <span class="kwd">"clear aligners north london"</span></p>
+        <p class="small" style="margin-bottom:.2em"><b>Headlines:</b></p>
+        <ol class="headlines small">
+          <li>Free Invisalign Consult Barnet</li><li>Invisalign Finchley N3/N12</li><li>Diamond Invisalign Provider</li><li>Finance From £X Per Month</li><li>Free 3D Smile Preview</li><li>No Upfront Consultation Fee</li><li>Evening &amp; Weekend Available</li><li>GM Dental Barnet — Book Now</li><li>Top 1% Invisalign Provider</li><li>See Your Result Before Paying</li>
+        </ol>
+        <p class="small" style="margin-bottom:.2em"><b>Descriptions:</b></p>
+        <ul class="small">
+          <li>Free Invisalign consultation at GM Dental Barnet — no deposit, no obligation. From £X/month.</li>
+          <li>Straighten your teeth in Barnet/Finchley. Free digital preview. 0% finance. Book online 24/7.</li>
+          <li>Diamond Invisalign — Barnet's specialist. Evening &amp; weekend appointments. From £X/month.</li>
+          <li>See your new smile before you start — free 3D scan at GM Dental Barnet. No obligation.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Campaign 4 — All-on-4 / Full Arch Kent</summary>
+    <div class="inner">
+      <p class="small"><b>Landing page:</b> /ads/all-on-4-kent/ &nbsp;·&nbsp; <button class="copy">Copy campaign</button></p>
+      <div class="copyblock">
+        <p class="small"><b>Keywords:</b> <span class="kwd">"all on 4 dental implants kent"</span> <span class="kwd">"full arch dental implants kent"</span> <span class="kwd">"same day teeth kent"</span> <span class="kwd">[all on 4 herne bay]</span> <span class="kwd">"smile in a day kent"</span></p>
+        <p class="small" style="margin-bottom:.2em"><b>Headlines:</b></p>
+        <ol class="headlines small">
+          <li>All-on-4 Implants Kent</li><li>Same Day Smile — Herne Bay</li><li>Full Arch From £X Per Day</li><li>Free CT Scan Worth £250</li><li>Local Kent Implant Expert</li><li>Not A Chain — Your Specialist</li><li>Free Full Arch Consultation</li><li>0% Finance — 18 Months</li><li>RCS-Trained Implant Surgeon</li><li>Fixed Teeth In One Day</li>
+        </ol>
+        <p class="small" style="margin-bottom:.2em"><b>Descriptions:</b></p>
+        <ul class="small">
+          <li>Full arch dental implants from £X/day at Warwick Lodge Herne Bay. RCS specialist. Free CT scan.</li>
+          <li>Same-day fixed teeth in Kent. Not a factory — your named specialist. Free CT scan (worth £250).</li>
+          <li>All-on-4 from £X per day on finance. Local Kent implant expert — we're closer than the chains.</li>
+          <li>Fixed, permanent teeth in one day. Warwick Lodge Dental, Herne Bay. Free consult + CBCT scan.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>Campaign 5 — Clear Braces Ashford <span class="pill p2">lower CPC, same buyer</span></summary>
+    <div class="inner">
+      <p class="small"><b>Landing page:</b> /ads/clear-braces-ashford/ &nbsp;·&nbsp; <button class="copy">Copy campaign</button></p>
+      <div class="copyblock">
+        <p class="small"><b>Keywords:</b> <span class="kwd">[clear braces ashford]</span> <span class="kwd">"teeth straightening ashford"</span> <span class="kwd">"adult braces ashford"</span> <span class="kwd">"orthodontist ashford"</span> <span class="kwd">"brace treatment ashford kent"</span></p>
+        <p class="small" style="margin-bottom:.2em"><b>Headlines:</b></p>
+        <ol class="headlines small">
+          <li>Clear Braces Ashford Kent</li><li>Invisible Braces — Ashford</li><li>Free Consultation Included</li><li>Straighten Teeth — Ashford</li><li>No Metal Braces Needed</li><li>Finance From £X/Month</li><li>Book Your Free Scan Today</li><li>Diamond Invisalign Provider</li><li>Results In X Months</li><li>Free Digital Smile Preview</li>
+        </ol>
+        <p class="small" style="margin-bottom:.2em"><b>Descriptions:</b></p>
+        <ul class="small">
+          <li>Clear removable aligners — no metal braces. Diamond provider in Ashford. Free consult + 3D scan.</li>
+          <li>Adult teeth straightening in Ashford from £X/month. Invisible, comfortable, removable.</li>
+          <li>Skip the metal braces. Invisalign clear aligners at GM Dental Ashford — free consult, 0% finance.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- ============ ORGANIC ============ -->
+<section id="organic">
+  <div class="section-head">
+    <div class="eyebrow">Organic + CRM machine</div>
+    <h2>Instagram captions · Review SMS · Email nurture</h2>
+  </div>
+
+  <h3 style="margin-top:8px">Instagram captions (10)</h3>
+  <details><summary>1 — Before/After reveal</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">The smile she's been waiting for. ✨
+
+[Patient first name] started her Invisalign journey with us [X] months ago
+not knowing if she was even a candidate.
+
+Her first consultation was free.
+Her result? Worth every aligner change.
+
+If you've been thinking about Invisalign, your free consultation is
+waiting. Link in bio to book — or DM us "SMILE" and we'll send you
+the direct link.
+
+#invisalign #invisalignashford #beforeandafter #cosmeticdentist
+#dentistkent #straightteeth #ashforddentist #gmdentalashford</pre></div></details>
+  <details><summary>2 — First aligners / treatment start</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">New patient. New journey. First aligners. 🦷
+
+[Name] picked up her first set of Invisalign aligners today — and
+she already knows what her smile is going to look like at the end.
+
+That's the part people don't expect: before we start, you see the
+result. A 3D digital simulation of your finished smile, built from
+your own teeth.
+
+No guessing. No surprises.
+
+Free consultation at GM Dental Ashford — link in bio.
+
+#invisalign #newpatient #invisalignjourney #dentistashford</pre></div></details>
+  <details><summary>3 — Invisalign vs braces (educational)</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Still deciding between Invisalign and braces? Here's what I
+tell every patient who asks. 👇
+
+✅ Invisalign is removable (braces aren't)
+✅ No food restrictions
+✅ Nobody knows you're wearing them
+✅ Fewer emergency appointments
+✅ Easier to clean your teeth
+
+The catch? You have to actually wear them (22 hours a day is
+the target). If you'll take them out for every meal and forget to
+put them back — braces might be the honest choice.
+
+But if you're committed? Invisalign changes everything.
+
+Free consultation to find out which is right for you. Link in bio.
+
+Dr Gaurav — GM Dental Ashford 🦷</pre></div></details>
+  <details><summary>4 — Review screenshot / second opinion</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">This is why we do what we do. 💙
+
+[Screenshot of 5-star review]
+
+[Patient name] came to us [X months] ago after being told by
+another practice that Invisalign wasn't right for them.
+We disagreed.
+
+Every patient deserves a proper consultation before that decision
+is made. And that consultation should always be free.
+
+If another dentist has turned you away, come and see us.
+No charge. No obligation.
+
+DM us "SECOND OPINION" or click the link in bio.</pre></div></details>
+  <details><summary>5 — Free consultation reminder</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">A quick reminder for anyone who's been putting this off. 👇
+
+Your Invisalign consultation at GM Dental Ashford is completely FREE.
+
+That includes:
+→ A full assessment of your teeth
+→ A 3D digital preview of your finished smile
+→ A detailed treatment plan
+→ Finance options from £X/month
+
+No £60 upfront fee. No obligation. No pressure.
+
+Just 30 minutes to find out what's possible.
+
+Link in bio to book.</pre></div></details>
+  <details><summary>6 — Finance / affordability</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">The most common thing I hear: "I can't afford Invisalign."
+
+The most common thing that happens next: they find out they can. 💙
+
+Invisalign at GM Dental from just £X per month — 0% finance,
+no deposit, and your treatment starts immediately once you're
+approved.
+
+We'll never push you into something that doesn't work for your
+budget. But we will make sure you know your options before
+you decide it's out of reach.
+
+Free consultation. Finance conversation included.
+Link in bio.</pre></div></details>
+  <details><summary>7 — Dr Gaurav personal brand</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">I get asked the same question almost every week:
+
+"How do I know if I'm a good candidate for Invisalign?"
+
+Honest answer: most people don't know until they're assessed.
+And the assessment should cost you nothing.
+
+I've been placing Invisalign aligners for [X] years. The most
+common thing that surprises people is that cases they thought
+were "too complex" turn out to be straightforward — and cases
+they thought were simple need careful planning.
+
+The only way to know is to book.
+
+Free. No obligation. 30 minutes.
+
+Link in bio 👆
+
+Dr Gaurav Mehta — GM Dental Ashford</pre></div></details>
+  <details><summary>8 — Practice milestone</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">A number that means everything to us. 🦷
+
+[X,XXX] patients have trusted GM Dental with their smile.
+
+From nervous first appointments to completed treatments —
+every case behind that number is a person who made a decision
+to do something for themselves.
+
+If you're still thinking about it: this is your sign.
+
+Free Invisalign consultation. Free implant assessment.
+Your move.
+
+Link in bio to book.</pre></div></details>
+  <details><summary>9 — Seasonal / limited offer</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">One month only. Our most popular treatment. 🔥
+
+This [month], we're running our [treatment] offer at GM Dental:
+
+→ [Specific offer — e.g. Free whitening worth £300 included]
+→ Free 3D consultation
+→ Finance from £X/month
+→ [X] appointments available
+
+We do this a few times a year and spaces fill up within 48 hours.
+If you've been waiting for the right time — this is it.
+
+DM "OFFER" for the booking link or click bio.</pre></div></details>
+  <details><summary>10 — Warwick Lodge implants story</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">A full set of permanent teeth. Herne Bay. One day. ✨
+
+[Patient story — e.g. Margaret had been living with dentures for
+7 years. She came to Warwick Lodge Dental for a free consultation.
+She left with a CT scan, a treatment plan, and a date booked.
+Six weeks later — new teeth. Fixed. Permanent. Life-changing.]
+
+If you're living with missing teeth or struggling with dentures,
+you deserve to know what's possible.
+
+Free consultation + free CT scan (worth £250) at Warwick Lodge
+Dental & Implant Centre, Herne Bay.
+
+Link in bio or call [number].
+
+Dr Gaurav Mehta — RCS-Trained Implant Specialist</pre></div></details>
+
+  <h3 style="margin-top:28px">Google review SMS (3) — the review velocity engine</h3>
+  <details><summary>SMS 1 — same-day standard <span class="pill live">send within 2 hours</span></summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Hi [FirstName], thank you for visiting GM Dental today. We hope you're happy with your treatment. If you have 60 seconds, a Google review would mean the world to us — it helps other local patients find us: [short link]. Thank you — the GM Dental team.</pre></div></details>
+  <details><summary>SMS 2 — Invisalign completion milestone</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Hi [FirstName] — congratulations on completing your Invisalign journey! 🎉 Your new smile deserves to be shared. Would you mind leaving us a quick Google review? It only takes a minute and helps us reach more patients like you: [link]. Thank you!</pre></div></details>
+  <details><summary>SMS 3 — 24-hour follow-up (one max)</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Hi [FirstName], just following up from your appointment yesterday at GM Dental. If you have a spare minute and were happy with your experience, your Google review really helps us — more than you might think: [link]. No worries at all if not! — GM Dental team.</pre></div></details>
+
+  <h3 style="margin-top:28px">Email nurture sequence (5) — enquiry → booked</h3>
+  <p class="muted small">For anyone who enquired but didn't book. Email 1 must fire within 5 minutes — a 5-minute response converts 21× better than 30 minutes.</p>
+  <details><summary>Email 1 — immediate (0–5 min) · "Your free consultation request"</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Subject: Your free consultation request — GM Dental [Location]
+
+Hi [FirstName],
+
+Thanks for getting in touch with GM Dental [Ashford/Barnet/Herne Bay].
+
+We've received your request and a member of our team will be in touch
+within the next hour to confirm your appointment.
+
+In the meantime, here's what to expect at your free consultation:
+
+✅ A full assessment of your teeth (no X-rays needed at this stage)
+✅ A 3D digital preview of what your smile could look like
+✅ A detailed, personalised treatment plan — yours to keep regardless
+✅ Finance options from £X/month if you'd like to proceed
+
+Your consultation is completely free. No deposit. No obligation.
+
+If you'd like to book online right now rather than wait: [Book Online Link]
+
+The GM Dental team</pre></div></details>
+  <details><summary>Email 2 — 1 hour · "We're holding a space for you"</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Subject: [FirstName], we're holding a space for you
+
+Hi [FirstName],
+
+We noticed you haven't confirmed your appointment yet — we're still
+holding a space for you.
+
+Is there anything that's making you hesitate? The most common concerns:
+
+"I'm not sure I'm a candidate." → That's exactly what the free
+consultation is for. We'll tell you honestly whether Invisalign is right
+for you, and if it isn't, what the alternatives are.
+
+"I'm worried about the cost." → We offer 0% finance from £X/month. Most
+patients are surprised how affordable it is once we break it down.
+
+"I'm busy / I'll do it later." → We have evening and weekend
+appointments. And "later" has a habit of becoming never.
+
+[Book Free Consultation →]
+
+Dr Gaurav Mehta & the GM Dental team</pre></div></details>
+  <details><summary>Email 3 — 24 hours · "Quick question"</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Subject: Quick question, [FirstName]
+
+Hi [FirstName],
+
+A quick one from us.
+
+The most common reason people don't book their free consultation after
+enquiring is this: they get busy and then feel awkward about coming back
+to it.
+
+There's nothing awkward about it. We'd love to see you.
+
+We've helped [X] patients in [location] achieve the smile they wanted.
+A lot of them took weeks or months to finally book — and every single
+one told us the same thing afterwards: "I wish I'd done this sooner."
+
+Your space is still available. No pressure. No judgement.
+
+[Book Your Free Slot →]
+
+Best,
+GM Dental [Location]</pre></div></details>
+  <details><summary>Email 4 — 3 days · scarcity</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Subject: [FirstName] — we have [X] free consultation slots left this month
+
+Hi [FirstName],
+
+We keep our consultation slots deliberately limited — every patient gets
+proper time with our specialist, not a 10-minute conveyor belt.
+
+This month, we have [X] remaining free Invisalign consultation slots at
+GM Dental [Location].
+
+Once they're gone, the next availability is [date — 3-4 weeks out].
+
+If you'd like to secure yours before then:
+
+[Book Now — [X] Slots Remaining →]
+
+No charge. No obligation. Just your 30 minutes.
+
+The GM Dental team</pre></div></details>
+  <details><summary>Email 5 — 7 days · door open</summary><div class="inner"><button class="copy">Copy</button><pre class="copyblock">Subject: No pressure, [FirstName] — but we're still here
+
+Hi [FirstName],
+
+Last email from us, we promise.
+
+We know life gets in the way. If now isn't the right time to think about
+your smile, that's completely fine.
+
+When the time is right, we'll be here. Your free consultation never
+expires.
+
+One thing worth knowing: Invisalign treatment takes time to work
+(typically 6–18 months depending on complexity). Every month you wait is
+a month longer until your result.
+
+No pressure. Just something to bear in mind.
+
+When you're ready: [website] or call us on [number].
+
+Best wishes,
+Dr Gaurav Mehta
+GM Dental</pre></div></details>
+</section>
+
+<!-- ============ CREATIVE ============ -->
+<section id="creative">
+  <div class="section-head">
+    <div class="eyebrow">Designed assets</div>
+    <h2>Canva designs (12) &amp; the Gamma dashboard</h2>
+    <p class="muted small">Canva links open the editable design — swap in your pricing, a real patient photo and your logo, export at 1080×1080 (feed) or 1080×1920 (Story). If a link asks you to log in, use the practice's Canva account; the designs are shared via link.</p>
+  </div>
+  <div class="grid g3">
+    <div class="card">
+      <h3>Invisalign FB/IG — Ashford</h3>
+      <a class="asset-link" href="https://www.canva.com/d/ufYHb46HhFzMiGk">Primary design <small>recommended — deploy first</small><span class="go">Edit in Canva →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/FO9KErYNuAAZojg">Variant B<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/HMzk9Bygh4wZ_dx">Variant C<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/vcg7avJBrU162Mj">Variant D<span class="go">Edit →</span></a>
+    </div>
+    <div class="card">
+      <h3>Implants FB — Warwick Lodge</h3>
+      <a class="asset-link" href="https://www.canva.com/d/6jg47ROkCetJWh3">Primary design <small>pairs with Ad 7</small><span class="go">Edit in Canva →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/HeQnJRk2ojNMUYK">Variant B<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/RNLWEJydOqWigKj">Variant C<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/XYySQ34Ts5oDgw5">Variant D<span class="go">Edit →</span></a>
+    </div>
+    <div class="card">
+      <h3>Instagram Story — Ashford</h3>
+      <a class="asset-link" href="https://www.canva.com/d/usa5BYlguCbzUl2">Primary design <small>retargeting layer</small><span class="go">Edit in Canva →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/nBwO724CBdFfFgF">Variant B<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/-83Zyb11X7QEYTa">Variant C<span class="go">Edit →</span></a>
+      <a class="asset-link" href="https://www.canva.com/d/HMb9G_zCY4afCmf">Variant D<span class="go">Edit →</span></a>
+    </div>
+  </div>
+  <div class="callout gold" style="margin-top:20px">
+    <b>Gamma dashboard:</b> <a href="https://gamma.app/docs/g9az3zqsf49yd0j">gamma.app/docs/g9az3zqsf49yd0j</a> — if it says you don't have access, it was generated under the connected Gamma workspace: log in to Gamma with the account that's linked to this Claude session (the connector account), open the doc, then use Share → "Anyone with the link can view" to unlock it for your team. <b>Everything in that deck is also on this page</b>, so nothing is blocked while you sort access.
+  </div>
+  <p class="small muted"><b>A/B rule:</b> run Primary vs Variant B for 7 days minimum to the same audience size. Winner (lower cost per lead) takes the full budget in week 2. Never run all 4 variants at once — they cannibalise reach.</p>
+</section>
+
+<!-- ============ LAUNCH ============ -->
+<section id="launch">
+  <div class="section-head">
+    <div class="eyebrow">Execution</div>
+    <h2>The 90-day path to Diamond Apex</h2>
+  </div>
+  <div class="timeline">
+    <div class="tl-item"><b class="wk">Week 1 — Prove the model (£800)</b>
+      <p class="small">Post Reel 1 organically (free). Launch Meta Ads 1 + 3 in Ashford (£500) and Google Campaign 2 in Herne Bay (£300). Turn on review SMS at Ashford, Warwick Lodge, Barnet, Rye. Call the Align Territory Manager about group aggregation. Ask the web developer to fix the Cloudflare crawler block.</p></div>
+    <div class="tl-item"><b class="wk">Weeks 2–4 — Build the machine</b>
+      <p class="small">Landing pages live: /invisalign-ashford, /dental-implants-herne-bay, /invisalign-barnet. Launch Ad 7 (Warwick Lodge) and Campaign 5 (Clear Braces). Email nurture sequence wired into the enquiry form — Email 1 fires within 5 minutes. First A/B creative winners scaled.</p></div>
+    <div class="tl-item"><b class="wk">Month 2 — Scale what works</b>
+      <p class="small">Target 30+ group case starts/month. Launch Barnet ads (Ads 12–14, Campaign 3). Reel 2 + weekly Dr Gaurav content cadence. Add Campaign 1 (Invisalign Ashford) once its landing page converts. Review counts: Warwick Lodge past 200 Google reviews, Barnet past 75.</p></div>
+    <div class="tl-item"><b class="wk">Month 3 — Lock the tier</b>
+      <p class="small">400+ annual run-rate confirmed across the group. Formal Diamond Apex review meeting with Align — bring the group aggregation case and this dashboard. Negotiate co-funded marketing. Quarterly seasonal drop (Ad 6) to finish the quarter strong.</p></div>
+  </div>
+</section>
+
+<!-- ============ KPI ============ -->
+<section id="kpi">
+  <div class="section-head">
+    <div class="eyebrow">Accountability</div>
+    <h2>Budget &amp; KPI targets</h2>
+  </div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Practice</th><th>Channel</th><th class="num">Monthly budget</th><th class="num">Target CPL</th><th class="num">Leads/mo</th><th class="num">Case starts/mo</th></tr></thead>
+      <tbody>
+        <tr><td>Ashford</td><td>Meta + Google</td><td class="num">£2,000</td><td class="num">£8–15</td><td class="num">150+</td><td class="num">12–15</td></tr>
+        <tr><td>Warwick Lodge</td><td>Google + Meta (implants)</td><td class="num">£1,500</td><td class="num">£15–25</td><td class="num">70+</td><td class="num">6–8 implant · 4–6 Invisalign</td></tr>
+        <tr><td>Barnet</td><td>Meta + Google</td><td class="num">£1,500</td><td class="num">£18–35</td><td class="num">55+</td><td class="num">6–8</td></tr>
+        <tr><td>Rye</td><td>Review SMS only</td><td class="num">£0</td><td class="num">—</td><td class="num">—</td><td class="num">1–2 (referred)</td></tr>
+        <tr><td>Practice 5</td><td>TBC on location</td><td class="num">TBC</td><td class="num">—</td><td class="num">—</td><td class="num">TBC</td></tr>
+        <tr><td><b>Group total</b></td><td></td><td class="num"><b>£5,000</b></td><td class="num"></td><td class="num"><b>275+</b></td><td class="num"><b>30–37 → 400+/yr</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted" style="margin-top:12px">Weekly scorecard to review every Monday: spend · leads · CPL · booked consults · show-rate · case starts · new Google reviews per practice. If CPL doubles benchmark for 2 weeks, kill the creative and promote the A/B runner-up. Case-start maths: 30–37 starts/month ≈ 360–440/year → Diamond Apex threshold with margin.</p>
+</section>
+
+<footer>
+  <div class="wrap">
+    GM Dental Group Domination Hub · Compiled from verified competitive research (Ahrefs DR, Meta Ads Library, live pricing pages) June 2026 · Companion documents: 05-Blueprint · 06-Ads Intelligence · 07-Competitive Dashboard · 08-Ad Copy Bank · Re-verify competitor pricing before quoting it in public-facing ads.
+  </div>
+</footer>
+</div>
+
+<script>
+document.querySelectorAll('button.copy').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const scope=btn.closest('.ad')||btn.closest('.inner')||btn.closest('details')||btn.closest('section');
+    const block=scope.querySelector('.copyblock');
+    const text=(block?block.innerText:scope.innerText).trim();
+    navigator.clipboard.writeText(text).then(()=>{
+      const old=btn.textContent; btn.textContent='Copied ✓'; btn.classList.add('done');
+      setTimeout(()=>{btn.textContent=old; btn.classList.remove('done')},1600);
+    });
+  });
+});
+</script>
