@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Portal — Unified Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="staff.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👥</text></svg>" />
+</head>
+<body>
+  <header>
+    <div class="brand">👥 Staff Portal <span>· push updates to the boss board</span></div>
+    <div class="spacer"></div>
+    <span id="whoami" class="live offline"><span class="pulse"></span><span id="whoText">not signed in</span></span>
+    <nav><a href="index.html">Owner dashboard</a></nav>
+  </header>
+
+  <main class="staff-main">
+    <!-- sign in -->
+    <section class="tile t-ivory" id="loginCard">
+      <h2>🔑 Sign in with your API key</h2>
+      <p class="sub">Ask Dr. Gaurav for your personal key. It stays in this browser only.</p>
+      <form id="loginForm" class="stack">
+        <input type="password" id="loginKey" placeholder="your-api-key" required />
+        <button class="primary" type="submit">Sign in</button>
+        <p class="form-msg" id="loginMsg"></p>
+      </form>
+    </section>
+
+    <div id="portal" hidden>
+      <section class="tile t-green">
+        <h2>🌙 Daily summary</h2>
+        <p class="sub">Submit once at the end of your day — it appears instantly on the owner board. Re-submitting replaces today's entry.</p>
+        <form id="summaryForm" class="stack">
+          <label>Workspace <select data-ws id="sumWs"></select></label>
+          <label>What got done today
+            <textarea id="sumWins" rows="3" placeholder="e.g. Rebooked 4 cancellations, submitted pre-auths…" required></textarea>
+          </label>
+          <label>Blockers (what stopped you)
+            <textarea id="sumBlockers" rows="2" placeholder="e.g. Waiting on sign-off, portal was down…"></textarea>
+          </label>
+          <label>Plan for tomorrow
+            <textarea id="sumTomorrow" rows="2" placeholder="e.g. Finish recall calls…"></textarea>
+          </label>
+          <button class="primary" type="submit">Submit summary</button>
+          <p class="form-msg" id="summaryMsg"></p>
+        </form>
+      </section>
+
+      <section class="tile t-rose">
+        <h2>📧 Flag an email that needs the doctor</h2>
+        <p class="sub">Only things that need a real decision — it lands in “Important Emails”.</p>
+        <form id="emailForm" class="stack">
+          <label>Workspace <select data-ws id="emWs"></select></label>
+          <label>Subject <input type="text" id="emSubject" required /></label>
+          <label>From <input type="text" id="emFrom" placeholder="sender@example.com" /></label>
+          <label>What it says (one line) <input type="text" id="emSnippet" /></label>
+          <label>What decision is needed <input type="text" id="emAction" required /></label>
+          <label class="inline"><input type="checkbox" id="emUrgent" /> Urgent</label>
+          <button class="primary" type="submit">Send to board</button>
+          <p class="form-msg" id="emailMsg"></p>
+        </form>
+      </section>
+
+      <section class="tile t-ivory">
+        <h2>✅ Add a task</h2>
+        <form id="taskForm" class="stack">
+          <label>Workspace <select data-ws id="tkWs"></select></label>
+          <label>Task <input type="text" id="tkTitle" required /></label>
+          <div class="two-col">
+            <label>Due <input type="date" id="tkDue" /></label>
+            <label>Priority
+              <select id="tkPriority">
+                <option value="1">P1 — must do</option>
+                <option value="2" selected>P2 — should do</option>
+                <option value="3">P3 — nice to do</option>
+              </select>
+            </label>
+          </div>
+          <label>Assignee <input type="text" id="tkAssignee" placeholder="defaults to you" /></label>
+          <button class="primary" type="submit">Add task</button>
+          <p class="form-msg" id="taskMsg"></p>
+        </form>
+      </section>
+
+      <section class="tile t-blue">
+        <h2>📅 Add a meeting / event</h2>
+        <form id="eventForm" class="stack">
+          <label>Workspace <select data-ws id="evWs"></select></label>
+          <label>Title <input type="text" id="evTitle" required /></label>
+          <div class="two-col">
+            <label>Date <input type="date" id="evDate" /></label>
+            <label>Start <input type="time" id="evStart" /></label>
+            <label>End <input type="time" id="evEnd" /></label>
+          </div>
+          <button class="primary" type="submit">Add event</button>
+          <p class="form-msg" id="eventMsg"></p>
+        </form>
+      </section>
+
+      <section class="tile t-orange">
+        <h2>📣 Post a note or announcement</h2>
+        <form id="noteForm" class="stack">
+          <label>Workspace <select data-ws id="ntWs"></select></label>
+          <label>Type
+            <select id="ntKind">
+              <option value="announcement">Announcement</option>
+              <option value="meeting">Meeting notes / action items</option>
+            </select>
+          </label>
+          <label>Title <input type="text" id="ntTitle" required /></label>
+          <label>Details <textarea id="ntBody" rows="3"></textarea></label>
+          <button class="primary" type="submit">Post</button>
+          <p class="form-msg" id="noteMsg"></p>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="staff.js"></script>
+</body>
+</html>
