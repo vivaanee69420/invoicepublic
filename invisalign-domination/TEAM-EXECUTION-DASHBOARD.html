@@ -1,0 +1,373 @@
+<title>GM Dental — Team Execution Dashboard</title>
+<style>
+  :root{
+    --bg:#f6f9fa; --surface:#ffffff; --surface-2:#eef4f5; --ink:#0e2233; --ink-2:#44586a; --ink-3:#7a8b99;
+    --accent:#0e7d7d; --accent-ink:#0a5c5c; --accent-soft:#e2f1f0;
+    --line:#dce5ea; --shadow:0 1px 3px rgba(14,34,51,.08);
+    --crit:#b3382e; --crit-soft:#f9e8e6;
+    --high:#a06a10; --high-soft:#f8efdc;
+    --med:#2e6f7d; --med-soft:#e2eef0;
+    --done:#2e7d43; --done-soft:#e7f3ea;
+    /* role hues — assigned in fixed order, validated for separation */
+    --r-gaurav:#1f6fb2; --r-gaurav-soft:#e4eff8;
+    --r-mkt:#8a4fbf; --r-mkt-soft:#f0e8f8;
+    --r-pm:#2e7d43; --r-pm-soft:#e7f3ea;
+    --r-tco:#c26a1b; --r-tco-soft:#f8ecdd;
+    --r-web:#3a4c5a; --r-web-soft:#e7ebee;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b1822; --surface:#132636; --surface-2:#0f1f2c; --ink:#e8eef2; --ink-2:#a9bac7; --ink-3:#728696;
+    --accent:#3db8b0; --accent-ink:#63d2ca; --accent-soft:#123a3d;
+    --line:#22384a; --shadow:0 1px 3px rgba(0,0,0,.4);
+    --crit:#e58379; --crit-soft:#3a1d1a;
+    --high:#d99a3a; --high-soft:#33260e;
+    --med:#5fb4c2; --med-soft:#123138;
+    --done:#5cb877; --done-soft:#16301d;
+    --r-gaurav:#5aa6e0; --r-gaurav-soft:#132a3d;
+    --r-mkt:#b788e0; --r-mkt-soft:#241833;
+    --r-pm:#5cb877; --r-pm-soft:#16301d;
+    --r-tco:#e0975a; --r-tco-soft:#31220f;
+    --r-web:#8fa3b3; --r-web-soft:#1b2836;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#0b1822; --surface:#132636; --surface-2:#0f1f2c; --ink:#e8eef2; --ink-2:#a9bac7; --ink-3:#728696;
+    --accent:#3db8b0; --accent-ink:#63d2ca; --accent-soft:#123a3d;
+    --line:#22384a; --shadow:0 1px 3px rgba(0,0,0,.4);
+    --crit:#e58379; --crit-soft:#3a1d1a; --high:#d99a3a; --high-soft:#33260e;
+    --med:#5fb4c2; --med-soft:#123138; --done:#5cb877; --done-soft:#16301d;
+    --r-gaurav:#5aa6e0; --r-gaurav-soft:#132a3d; --r-mkt:#b788e0; --r-mkt-soft:#241833;
+    --r-pm:#5cb877; --r-pm-soft:#16301d; --r-tco:#e0975a; --r-tco-soft:#31220f;
+    --r-web:#8fa3b3; --r-web-soft:#1b2836;
+  }}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Gill Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  h1,h2,h3{line-height:1.18;text-wrap:balance;font-weight:650;margin:0}
+  h1{font-size:clamp(1.7rem,3.6vw,2.5rem)}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+  .eyebrow{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--accent-ink)}
+  .muted{color:var(--ink-2)} .small{font-size:.85rem} .tnum{font-variant-numeric:tabular-nums}
+
+  header.hero{background:linear-gradient(155deg,#0e2233,#123a45 70%,#0e7d7d 135%);color:#eef6f6;padding:44px 0 34px}
+  header.hero .eyebrow{color:#7fd4cd}
+  header.hero p{max-width:64ch;color:#c6d6dc;margin:.5em 0 0}
+  .hero-row{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-end;justify-content:space-between}
+  .overall{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:16px 20px;min-width:230px}
+  .overall .bar{height:10px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden;margin:8px 0 4px}
+  .overall .bar i{display:block;height:100%;background:#3db8b0;width:0;transition:width .4s ease}
+  .overall b{font-size:1.9rem;font-variant-numeric:tabular-nums}
+
+  /* sticky control bar */
+  .controls{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--line);padding:10px 0}
+  .controls .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .controls .lbl{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:700;margin-right:2px}
+  .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font:inherit;font-size:.83rem;font-weight:600;padding:6px 13px;border-radius:999px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;line-height:1}
+  .chip .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .chip[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  :root[data-theme="dark"] .chip[aria-pressed="true"]{color:#06201f}
+  .chip.role[aria-pressed="true"]{color:#fff}
+  .chip.reset{margin-left:auto;color:var(--accent-ink);border-color:var(--accent)}
+
+  section{padding:40px 0 4px}
+  .sh{margin-bottom:20px}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+  /* audit */
+  .audit{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:var(--surface)}
+  .audit-row{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line)}
+  .audit-row:last-child{border-bottom:none}
+  .sev{font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:5px;white-space:nowrap}
+  .sev.c{background:var(--crit-soft);color:var(--crit)} .sev.h{background:var(--high-soft);color:var(--high)} .sev.m{background:var(--med-soft);color:var(--med)}
+  .audit-row .fix{font-size:.83rem;color:var(--ink-2)}
+  .audit-row .who{font-size:.75rem;font-weight:700;white-space:nowrap;text-align:right}
+
+  /* day cards */
+  .day{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+  .day.prep{border-color:var(--high)} .day.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .day-head{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:15px 20px;background:var(--surface-2)}
+  .day-head h3{font-size:1.15rem;display:flex;align-items:center;gap:10px}
+  .day-date{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .day-tag{font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+  .day-tag.go{background:var(--done-soft);color:var(--done)} .day-tag.pre{background:var(--high-soft);color:var(--high)} .day-tag.now{background:var(--accent-soft);color:var(--accent-ink)}
+  .day-prog{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:.8rem;font-weight:700;color:var(--ink-2)}
+  .day-prog .bar{width:88px;height:7px;border-radius:5px;background:var(--line);overflow:hidden}
+  .day-prog .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .35s}
+  .tasks{list-style:none;margin:0;padding:6px 0}
+  li.task{display:grid;grid-template-columns:auto auto 1fr;gap:12px;align-items:start;padding:11px 20px;border-top:1px solid var(--line)}
+  li.task:first-child{border-top:none}
+  li.task label{display:contents;cursor:pointer}
+  li.task input{margin-top:3px;width:19px;height:19px;accent-color:var(--accent);cursor:pointer;flex:none}
+  .rolechip{font-size:.66rem;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap;height:fit-content;margin-top:1px}
+  .task .txt{font-size:.93rem}
+  .task .txt .d{display:block;font-size:.8rem;color:var(--ink-3);margin-top:2px}
+  li.task.checked .txt{text-decoration:line-through;text-decoration-color:var(--ink-3);color:var(--ink-3)}
+  .hidden{display:none!important}
+
+  .note{background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;padding:14px 18px;font-size:.88rem;margin:16px 0}
+  .note.gold{background:var(--high-soft);border-color:var(--high)}
+  footer{margin-top:40px;padding:26px 0 40px;border-top:1px solid var(--line);color:var(--ink-3);font-size:.83rem}
+  a{color:var(--accent-ink)}
+  @media (max-width:560px){.audit-row{grid-template-columns:auto 1fr;}.audit-row .who{grid-column:2;text-align:left}}
+</style>
+
+<header class="hero">
+  <div class="wrap hero-row">
+    <div>
+      <div class="eyebrow">GM Dental Group · Launch Week Command Board</div>
+      <h1>Team Execution Dashboard</h1>
+      <p>Every task, every day, every person — from go-live Monday to a repeatable daily rhythm. Tick a box and it saves on this device. Filter by team member so each person sees only their jobs.</p>
+    </div>
+    <div class="overall">
+      <div class="eyebrow" style="color:#9fc3c6">Launch week complete</div>
+      <div class="bar"><i id="overallBar"></i></div>
+      <div><b id="overallPct">0%</b> <span class="small" style="color:#9fc3c6">· <span id="overallCount">0/0</span> tasks done</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="wrap">
+    <span class="lbl">Show</span>
+    <button class="chip role" data-role="all" aria-pressed="true">Everyone</button>
+    <button class="chip role" data-role="gaurav" aria-pressed="false"><span class="dot" style="background:var(--r-gaurav)"></span>Dr Gaurav</button>
+    <button class="chip role" data-role="mkt" aria-pressed="false"><span class="dot" style="background:var(--r-mkt)"></span>Marketing</button>
+    <button class="chip role" data-role="pm" aria-pressed="false"><span class="dot" style="background:var(--r-pm)"></span>Practice Mgr</button>
+    <button class="chip role" data-role="tco" aria-pressed="false"><span class="dot" style="background:var(--r-tco)"></span>Coordinator</button>
+    <button class="chip role" data-role="web" aria-pressed="false"><span class="dot" style="background:var(--r-web)"></span>Web Dev</button>
+    <button class="chip reset" id="resetBtn">Reset all ticks</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- GOD MODE AUDIT -->
+<section id="audit">
+  <div class="sh">
+    <div class="eyebrow">God-mode audit</div>
+    <h2 style="font-size:1.5rem;margin:.2em 0">Everything that can be improved — ranked</h2>
+    <p class="muted small" style="max-width:72ch">The 15 gaps between where GM Dental is today and Diamond Apex. Each one maps to a task with an owner below. Fix the criticals this week; the rest become the daily rhythm.</p>
+  </div>
+  <div class="audit" id="auditList"></div>
+</section>
+
+<!-- DAILY BOARD -->
+<section id="board">
+  <div class="sh">
+    <div class="eyebrow">The plan · week of Mon 6 – Fri 10 July 2026</div>
+    <h2 style="font-size:1.5rem;margin:.2em 0">Daily task board</h2>
+    <p class="muted small">Prep tasks are the setup that must be done as you go; each weekday gets everything live. Use the filter above so each team member sees only their tasks.</p>
+  </div>
+  <div class="note gold"><b>Owner's job (Dr Gaurav):</b> the two calls only you can make — Align Territory Manager about <b>group tier aggregation</b> (worth £150–200k/yr) and signing off the £5k/month budget — gate everything else. Do them first thing Monday.</div>
+  <div id="daysHost"></div>
+</section>
+
+<!-- ONGOING RHYTHM -->
+<section id="rhythm">
+  <div class="sh">
+    <div class="eyebrow">After launch week · from Mon 13 July</div>
+    <h2 style="font-size:1.5rem;margin:.2em 0">The ongoing daily rhythm (the "minor tasks")</h2>
+    <p class="muted small">Once everything's live, the machine runs on these small repeating jobs. This is what you hand the team every week.</p>
+  </div>
+  <div id="rhythmHost"></div>
+  <div class="note"><b>Every Monday 9am — 15-minute scorecard huddle.</b> Review last week per practice: spend · leads · cost-per-lead · booked consults · show-rate · case starts · new Google reviews. If any ad's cost-per-lead is double benchmark two weeks running, kill it and promote the A/B runner-up. Companion detail lives in the <a href="DOMINATION-HUB.html">Domination Hub</a> and <code>08-AD-COPY-BANK.md</code>.</div>
+</section>
+
+</div>
+
+<footer><div class="wrap">GM Dental Group · Team Execution Dashboard · Ticks save to this browser only (localStorage) — share the file and each person keeps their own progress. Pair with DOMINATION-HUB.html for the ad copy, Canva links and campaign detail.</div></footer>
+
+<script>
+const ROLES={
+  gaurav:{label:'Dr Gaurav',soft:'--r-gaurav-soft',ink:'--r-gaurav'},
+  mkt:{label:'Marketing',soft:'--r-mkt-soft',ink:'--r-mkt'},
+  pm:{label:'Practice Mgr',soft:'--r-pm-soft',ink:'--r-pm'},
+  tco:{label:'Coordinator',soft:'--r-tco-soft',ink:'--r-tco'},
+  web:{label:'Web Dev',soft:'--r-web-soft',ink:'--r-web'}
+};
+
+const AUDIT=[
+  ['c','Ashford &amp; Barnet websites are invisible on Google (Domain Rating 0, ~2 pages indexed)','web','Web + Marketing'],
+  ['c','Cloudflare is returning 403s — it may be blocking Google&#39;s crawler, which would bury the sites','web','Web Dev'],
+  ['c','Zero paid ads are live while Romney House runs Invisalign ads in Ashford right now','mkt','Marketing'],
+  ['h','No 5-minute speed-to-lead process — a 5-min reply converts 21&times; better than 30 min','tco','Coordinator + PM'],
+  ['h','Group tier aggregation with Align is unconfirmed — potentially £150–200k/yr in lab savings','gaurav','Dr Gaurav'],
+  ['h','Review velocity is thin at Warwick Lodge (161) and Barnet (42) vs 300+ benchmark','pm','Practice Mgr'],
+  ['h','No per-month pricing shown anywhere — rivals lead with "from £15.74/month"','web','Web Dev'],
+  ['h','No dedicated treatment/location landing pages for ads to point at','web','Web Dev'],
+  ['h','No retargeting pixels (Meta + Google) installed to re-reach warm visitors','mkt','Marketing + Web'],
+  ['m','Free consultation isn&#39;t front-and-centre despite Aligndent charging £60 for one','mkt','Marketing + Web'],
+  ['m','No named-clinician brand — Dr Gaurav has no content presence yet','gaurav','Dr Gaurav'],
+  ['m','No call / form tracking, so lead attribution is guesswork','web','Web Dev'],
+  ['m','No automated email nurture for enquiries that don&#39;t book','mkt','Marketing'],
+  ['m','Google Business Profiles under-optimised (photos, posts, Q&amp;A, categories)','pm','Practice Mgr'],
+  ['m','Practice sites are fragmented from the DR-36 parent domain — authority is diluted','web','Web + Marketing']
+];
+
+const DAYS=[
+  {id:'prep',cls:'prep',tag:['pre','Do as you go'],title:'Prep &amp; setup',date:'This week — foundations',tasks:[
+    ['gaurav','Approve the £5,000/month group ad budget so campaigns can go live','Split: Ashford £2k · Warwick Lodge £1.5k · Barnet £1.5k'],
+    ['gaurav','Book the call with your Align Territory Manager','Ask: cases to next tier per practice, can the 5-practice group aggregate to Diamond Apex, any co-funded marketing'],
+    ['gaurav','Film Reel 1 — "The £60 Consultation Trap"','Script is in the Domination Hub. Phone camera, clean background, 30–45s. Just do one take'],
+    ['mkt','Set up Meta Business Manager + ad account and Google Ads account','Add payment method, set billing to the approved budget'],
+    ['mkt','Export the 3 primary Canva ads to 1080×1080 (feed) and 1080×1920 (Story)','Primary + Variant B for each — you&#39;ll A/B them'],
+    ['web','Fix the Cloudflare 403 — whitelist Googlebot &amp; Bingbot','Verify in Google Search Console → URL Inspection that pages are crawlable'],
+    ['web','Install Meta Pixel + Google tag on all 5 practice sites','Fire a "Lead" event on every enquiry form submit and phone-tap'],
+    ['web','Start landing page 1: /dental-implants-herne-bay','Free CT scan hook, per-day price, one clear form. Copy in 08-AD-COPY-BANK'],
+    ['pm','Set up the Google review SMS tool with a short review link per practice','One link each for Ashford, Warwick Lodge, Barnet, Rye'],
+    ['pm','Collect 3–4 signed before/after photo consents from recent patients','Needed for the social-proof ads (Ads 5, 11, 14)'],
+    ['tco','Prepare bookable free-consultation slots in the diary for the coming 3 weeks','Include some evening/weekend slots — it&#39;s a Barnet differentiator'],
+    ['tco','Learn the free-consult script: lead with "your consultation is free" vs the £60 rival','Practise the enquiry-to-booking call once with the PM']
+  ]},
+  {id:'mon',cls:'today',tag:['go','GO LIVE'],title:'Monday',date:'Mon 6 July',tasks:[
+    ['gaurav','First thing: make the Align Territory Manager call','This unlocks the £150–200k/yr tier question — do it before clinic'],
+    ['gaurav','Post Reel 1 organically to Instagram, TikTok and Facebook','Free reach. Pin it. Reply to every comment today'],
+    ['mkt','Launch Meta Ads 1 + 3 (Ashford Invisalign) — £500 for the week','Ad 1 competitor-contrast + Ad 3 scarcity/retargeting'],
+    ['mkt','Launch Google Campaign 2 (Dental Implants Herne Bay) — £300','Lowest competition, highest value. Confirm conversion tracking fires'],
+    ['pm','Switch on review SMS at every practice — SMS 1 within 2 hrs of each completed appointment','Target: 5+ new review requests sent today'],
+    ['tco','Speed-to-lead LIVE: every web/phone/DM enquiry answered within 5 minutes','Log time-to-first-response for each enquiry today'],
+    ['web','Take /dental-implants-herne-bay landing page live','Point Google Campaign 2 at it; test the form end-to-end yourself']
+  ]},
+  {id:'tue',cls:'',tag:['now','Build'],title:'Tuesday',date:'Tue 7 July',tasks:[
+    ['mkt','Launch Meta Ad 7 (Warwick Lodge implants, daily-cost frame) — £30/day','Pair with the primary implants Canva design'],
+    ['mkt','Wire the 5-email nurture sequence to the enquiry forms','Email 1 must auto-send within 5 minutes of enquiry'],
+    ['web','Build landing page 2: /invisalign-ashford','Free consult + no-£60-fee + Diamond credential + finance-per-month'],
+    ['pm','Optimise the Ashford &amp; Warwick Lodge Google Business Profiles','Fresh photos, correct categories, a Google Post, answer 3 Q&amp;As'],
+    ['tco','Call yesterday&#39;s enquiries who haven&#39;t booked — offer a slot','Use the nurture talking points; note objections for the Monday huddle'],
+    ['gaurav','Reply to Reel 1 comments &amp; DMs; note the top question asked','That question becomes Reel 2 content']
+  ]},
+  {id:'wed',cls:'',tag:['now','Build'],title:'Wednesday',date:'Wed 8 July',tasks:[
+    ['mkt','Launch Google Campaign 5 (Clear Braces Ashford) — lower CPC, same buyer','Point at the /clear-braces-ashford or /invisalign-ashford page'],
+    ['mkt','Check day-2 ad numbers; pause any ad with zero clicks after 1,000 impressions','Early hygiene — don&#39;t let a dud spend'],
+    ['web','Build landing page 3: /invisalign-barnet','Evening/weekend appointments + free consult + Diamond provider'],
+    ['gaurav','Film Reel 2 — "5 Things Nobody Tells You About Invisalign"','Post Wed/Thu for best reach. Script in the Hub'],
+    ['pm','Send review SMS to every patient completing today; chase any 24h no-response with SMS 3','Keep the daily review engine turning'],
+    ['tco','Confirm all booked consults for the rest of the week with a reminder text','Cuts no-shows — protects the show-rate KPI']
+  ]},
+  {id:'thu',cls:'',tag:['now','Build'],title:'Thursday',date:'Thu 9 July',tasks:[
+    ['mkt','Launch Meta Ads 12–14 (Barnet) once /invisalign-barnet is live','£30/day; professional N-postcode targeting'],
+    ['mkt','Install/verify retargeting audiences are collecting (Meta + Google)','So next week you can retarget everyone who visited but didn&#39;t book'],
+    ['web','Add "from £X/month" pricing + a visible "Free Consultation" banner to all practice homepages','Directly closes the pricing &amp; free-consult audit gaps'],
+    ['pm','Post the first before/after (with consent) to each practice&#39;s Instagram','Use caption template 1 from the Hub'],
+    ['tco','Second-touch the week&#39;s unconverted enquiries; book what you can','Every booked consult this week counts toward the case-start target'],
+    ['gaurav','Post Reel 2; boost the best-performing reel with £20/day','Only boost once it has organic engagement']
+  ]},
+  {id:'fri',cls:'',tag:['go','Everything live'],title:'Friday',date:'Fri 10 July',tasks:[
+    ['mkt','Confirm all campaigns live: 5 Meta ad sets + 4 Google campaigns running with tracking','This is the "everything live" checkpoint'],
+    ['mkt','Pull the week-1 numbers into one sheet for Monday&#39;s huddle','Spend, leads, CPL, bookings per practice'],
+    ['web','All 3 landing pages live with working forms + pixels + call tracking','Test each form submits and fires a Lead event'],
+    ['pm','Tally new Google reviews gained this week per practice','Baseline for the weekly review-velocity target'],
+    ['tco','Log the week&#39;s enquiries → booked → attended so show-rate is measurable','Hand the numbers to the PM for Monday'],
+    ['gaurav','15-min review of the week; decide any budget shift for week 2','Winners scale, losers get cut Monday']
+  ]}
+];
+
+const RHYTHM=[
+  {id:'r-daily',title:'Every working day',date:'The machine',tasks:[
+    ['tco','Answer every new enquiry within 5 minutes and log time-to-first-response'],
+    ['tco','Follow up yesterday&#39;s unbooked enquiries with a call or text'],
+    ['pm','Send review SMS to every patient who completed treatment today (within 2 hrs)'],
+    ['mkt','Glance at ad spend &amp; cost-per-lead; pause anything running away'],
+    ['pm','Reply to every Google review and social comment within the day']
+  ]},
+  {id:'r-weekly',title:'Weekly cadence',date:'Repeats',tasks:[
+    ['gaurav','Post 2 pieces of face-to-camera content (Reel or short) per week'],
+    ['mkt','Refresh the winning ad creative every ~2 weeks to fight fatigue; run the next A/B'],
+    ['pm','Post 3 before/after or educational posts per practice per week'],
+    ['pm','Add one Google Business Profile post + answer new Q&amp;As per practice'],
+    ['mkt','Report week-on-week: spend, leads, CPL, consults, show-rate, case starts, reviews']
+  ]}
+];
+
+function cvar(v){return getComputedStyle(document.documentElement).getPropertyValue(v)}
+function roleChip(r){const R=ROLES[r];return `<span class="rolechip" style="background:var(${R.soft});color:var(${R.ink})">${R.label}</span>`}
+
+// render audit
+document.getElementById('auditList').innerHTML=AUDIT.map(([sev,fix,role,who])=>{
+  return `<div class="audit-row" data-role="${role}"><span class="sev ${sev}">${sev==='c'?'Critical':sev==='h'?'High':'Medium'}</span><span class="fix">${fix}</span><span class="who">${who}</span></div>`;
+}).join('');
+
+// render a day/rhythm block
+function renderBlock(d,isRhythm){
+  const tasks=d.tasks.map((t,i)=>{
+    const [role,txt,detail]=t;const id=d.id+'-'+i;
+    return `<li class="task" data-role="${role}"><label>
+      <input type="checkbox" data-key="${id}">
+      ${roleChip(role)}
+      <span class="txt">${txt}${detail?`<span class="d">${detail}</span>`:''}</span>
+    </label></li>`;
+  }).join('');
+  const tag=d.tag?`<span class="day-tag ${d.tag[0]}">${d.tag[1]}</span>`:'';
+  const prog=isRhythm?'':`<div class="day-prog"><span class="pct">0%</span><div class="bar"><i></i></div></div>`;
+  return `<div class="day ${d.cls||''}" data-day="${d.id}">
+    <div class="day-head"><h3>${d.title} ${tag}</h3><span class="day-date">${d.date}</span>${prog}</div>
+    <ul class="tasks">${tasks}</ul></div>`;
+}
+document.getElementById('daysHost').innerHTML=DAYS.map(d=>renderBlock(d,false)).join('');
+document.getElementById('rhythmHost').innerHTML=RHYTHM.map(d=>renderBlock(d,true)).join('');
+
+// persistence
+const KEY='gmdental-exec-v1';
+let state=JSON.parse(localStorage.getItem(KEY)||'{}');
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+
+document.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+  const k=cb.dataset.key;
+  if(state[k]){cb.checked=true;cb.closest('.task').classList.add('checked')}
+  cb.addEventListener('change',()=>{
+    state[k]=cb.checked; save();
+    cb.closest('.task').classList.toggle('checked',cb.checked);
+    updateProgress();
+  });
+});
+
+function updateProgress(){
+  // per-day (launch week only)
+  DAYS.forEach(d=>{
+    const el=document.querySelector(`[data-day="${d.id}"]`);
+    const boxes=[...el.querySelectorAll('input')];
+    const done=boxes.filter(b=>b.checked).length;
+    const pct=boxes.length?Math.round(done/boxes.length*100):0;
+    el.querySelector('.day-prog .bar i').style.width=pct+'%';
+    el.querySelector('.day-prog .pct').textContent=pct+'%';
+  });
+  // overall = launch week tasks
+  const all=DAYS.flatMap(d=>d.tasks.map((_,i)=>d.id+'-'+i));
+  const done=all.filter(k=>state[k]).length;
+  const pct=all.length?Math.round(done/all.length*100):0;
+  document.getElementById('overallBar').style.width=pct+'%';
+  document.getElementById('overallPct').textContent=pct+'%';
+  document.getElementById('overallCount').textContent=done+'/'+all.length;
+}
+updateProgress();
+
+// role filter
+let activeRole='all';
+document.querySelectorAll('.chip.role').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    activeRole=chip.dataset.role;
+    document.querySelectorAll('.chip.role').forEach(c=>c.setAttribute('aria-pressed', c===chip));
+    document.querySelectorAll('.chip.role[aria-pressed="true"]').forEach(c=>{
+      if(activeRole!=='all'){c.style.background='var(--r-'+activeRole+')';c.style.borderColor='var(--r-'+activeRole+')'}
+    });
+    document.querySelectorAll('.chip.role').forEach(c=>{if(c.dataset.role!==activeRole||activeRole==='all'){c.style.background='';c.style.borderColor=''}});
+    applyFilter();
+  });
+});
+function applyFilter(){
+  document.querySelectorAll('[data-role]').forEach(el=>{
+    el.classList.toggle('hidden', activeRole!=='all' && el.dataset.role!==activeRole);
+  });
+  // hide day/audit blocks that now have no visible rows
+  document.querySelectorAll('.day').forEach(day=>{
+    const any=[...day.querySelectorAll('li.task')].some(t=>!t.classList.contains('hidden'));
+    day.classList.toggle('hidden',!any);
+  });
+}
+
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(!confirm('Clear every tick on this device?'))return;
+  state={};save();
+  document.querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.checked=false;cb.closest('.task').classList.remove('checked')});
+  updateProgress();
+});
+</script>
