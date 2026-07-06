@@ -49,6 +49,28 @@ Two separate identities, by design:
 | Ramesh | Accounts (FTS) | `ramesh-demo-key` |
 | Sara | Marketing (Plan4Growth) | `sara-demo-key` |
 
+## Run it on your own computer (no cloud, no terminal)
+
+The simplest way to use it — everything runs on your machine.
+
+1. On the repo page, click **Code → Download ZIP**, then unzip it.
+2. Make sure **Node.js** is installed (free, one-time): https://nodejs.org — grab
+   the "LTS" installer for your OS and run it.
+3. Open the unzipped folder and **double-click**:
+   - **Mac:** `start.command` — the first time, macOS may warn; right-click it →
+     **Open** → confirm.
+   - **Windows:** `start.bat`.
+4. A window opens, sets things up on first run, and your browser lands on the
+   dashboard at `http://localhost:3000`.
+
+**Set your password:** create a plain text file named `owner-password.txt` in the
+same folder containing just your password, then restart. Without it the login
+password is `changeme`.
+
+Keep the window open while you use the app; closing it stops the server. Anyone on
+the **same Wi-Fi** can reach it at `http://<your-computer-ip>:3000`. For staff in
+other locations, use a cloud deploy instead (below).
+
 ## Deploy
 
 The app is a plain Node/Express server with no build step. It needs two things
