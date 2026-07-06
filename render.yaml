@@ -1,0 +1,22 @@
+# Render.com blueprint. In the Render dashboard: New → Blueprint → point it at
+# this repo, then set OWNER_PASSWORD when prompted. Everything else is wired up.
+services:
+  - type: web
+    name: unified-dashboard
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: OWNER_NAME
+        value: Dr. Gaurav
+      - key: OWNER_PASSWORD
+        sync: false          # set this secret in the dashboard; never commit it
+    disk:
+      name: data
+      mountPath: /var/data   # keeps db.json across deploys/restarts
+      sizeGB: 1

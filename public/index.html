@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Planner — Unified Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>" />
+</head>
+<body>
+  <header>
+    <div class="brand">🗂️ My Planner <span>· all workspaces, one board</span></div>
+    <div class="datenav">
+      <button id="prevDay" class="ghost" title="Previous day">‹</button>
+      <span class="date-label" id="dateLabel">…</span>
+      <button id="nextDay" class="ghost" title="Next day">›</button>
+      <button id="todayBtn">Today</button>
+    </div>
+    <div class="chips" id="wsChips"></div>
+    <div class="spacer"></div>
+    <span class="live offline" id="liveDot"><span class="pulse"></span><span id="liveText">connecting…</span></span>
+    <nav><a href="staff.html">Staff portal</a></nav>
+    <span class="live" id="whoBadge" hidden>👤 <span id="whoName"></span></span>
+    <button id="logoutBtn" class="ghost" title="Sign out">Sign out</button>
+  </header>
+
+  <main>
+    <div class="board" id="board"></div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

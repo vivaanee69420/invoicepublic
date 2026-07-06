@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign in — My Planner</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>" />
+  <style>
+    .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+    .login-card {
+      width: 100%; max-width: 360px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px;
+    }
+    .login-card h1 { margin: 0 0 4px; font-size: 20px; }
+    .login-card p { margin: 0 0 18px; color: var(--ink-2); font-size: 14px; }
+    .login-card input {
+      width: 100%; font: inherit; font-size: 15px;
+      border: 1px solid var(--line); border-radius: 10px;
+      background: var(--bg); color: var(--ink); padding: 11px 12px; margin-bottom: 12px;
+    }
+    .login-card button { width: 100%; padding: 11px; font-size: 15px; border-radius: 10px; }
+    .login-msg { color: var(--danger); font-size: 13px; min-height: 1em; margin: 8px 0 0; }
+    .login-foot { margin-top: 16px; font-size: 13px; color: var(--ink-3); text-align: center; }
+    .login-foot a { color: var(--ink-2); }
+  </style>
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" id="loginForm">
+      <h1>🗂️ My Planner</h1>
+      <p>Sign in to your unified dashboard.</p>
+      <input type="password" id="password" placeholder="Owner password" autocomplete="current-password" autofocus required />
+      <button class="primary" type="submit">Sign in</button>
+      <p class="login-msg" id="msg"></p>
+      <p class="login-foot">Team member? <a href="staff.html">Go to the staff portal →</a></p>
+    </form>
+  </div>
+
+  <script>
+    // Already signed in? Skip straight to the board.
+    fetch('/api/session').then(r => r.json()).then(s => { if (s.authed) location.replace('/'); });
+
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = document.getElementById('msg');
+      msg.textContent = '';
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: document.getElementById('password').value })
+        });
+        if (!res.ok) {
+          msg.textContent = (await res.json()).error || 'Sign in failed.';
+          return;
+        }
+        location.replace('/');
+      } catch {
+        msg.textContent = 'Could not reach the server.';
+      }
+    });
+  </script>
+</body>
+</html>

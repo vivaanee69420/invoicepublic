@@ -1,0 +1,16 @@
+{
+  "name": "unified-dashboard",
+  "version": "1.0.0",
+  "description": "xtiles-style unified daily dashboard: emails, tasks and team summaries across FTS, GM Dental and Plan4Growth",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node lib/seed.js --reset"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
