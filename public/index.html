@@ -20,22 +20,13 @@
     <div class="spacer"></div>
     <span class="live offline" id="liveDot"><span class="pulse"></span><span id="liveText">connecting…</span></span>
     <nav><a href="staff.html">Staff portal</a></nav>
-    <button id="keyBtn" class="ghost" title="Set your API key">🔑 <span id="keyWho">Sign in</span></button>
+    <span class="live" id="whoBadge" hidden>👤 <span id="whoName"></span></span>
+    <button id="logoutBtn" class="ghost" title="Sign out">Sign out</button>
   </header>
 
   <main>
     <div class="board" id="board"></div>
   </main>
-
-  <dialog id="keyDialog">
-    <h3>Enter your API key</h3>
-    <p>Checking off tasks and adding items needs your personal API key. It is stored only in this browser.</p>
-    <input type="password" id="keyInput" placeholder="e.g. owner-demo-key" />
-    <div class="dlg-actions">
-      <button id="keyCancel">Cancel</button>
-      <button id="keySave" class="primary">Save</button>
-    </div>
-  </dialog>
 
   <script src="app.js"></script>
 </body>

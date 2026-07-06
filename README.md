@@ -18,25 +18,55 @@ or from scripts, and the board updates live.
 
 ```bash
 npm install
-npm start          # http://localhost:3000
+OWNER_PASSWORD=your-strong-password npm start   # http://localhost:3000
 ```
 
+Open the board and you'll be sent to `/login.html` — sign in with that password.
 The first run seeds a demo database (`data/db.json`) with the three workspaces
 and demo staff. Reset it any time with `npm run seed`.
 
-### Demo API keys (change before real use)
+If you don't set `OWNER_PASSWORD`, the app falls back to `changeme` and prints a
+warning — fine for a quick local look, never for a public deployment.
+
+## Authentication
+
+Two separate identities, by design:
+
+- **You (owner)** sign in with a password (`OWNER_PASSWORD`). That creates a
+  server-side session and an `HttpOnly` cookie; **the board and its live stream
+  require this session** — reads are no longer open. The password is never
+  stored in plaintext beyond the env var (scrypt hash + constant-time compare),
+  and sessions persist in the data store so a redeploy doesn't log you out.
+- **Staff** push data with a personal key in the `x-api-key` header. Keys live in
+  `data/db.json` under `staff` — edit that file to rename people, rotate keys, or
+  add team members. Staff keys can *write* (push) but cannot read your board.
+
+### Demo staff keys (rotate before real use)
 
 | Person | Role | Key |
 |---|---|---|
-| Dr. Gaurav | owner | `owner-demo-key` |
 | Priya | Front desk (GM Dental) | `priya-demo-key` |
 | Ramesh | Accounts (FTS) | `ramesh-demo-key` |
 | Sara | Marketing (Plan4Growth) | `sara-demo-key` |
 
-Keys live in `data/db.json` under `staff` — edit that file to rename people,
-change keys, or add team members. Every write to the API requires a valid key in
-the `x-api-key` header; reading the board is open (put the app behind your own
-auth/VPN if you deploy it publicly).
+## Deploy
+
+The app is a plain Node/Express server with no build step. It needs two things
+in production: `OWNER_PASSWORD` set to a strong secret, and a **persistent disk**
+for `data/db.json` (point `DATA_DIR` at it) so nothing is lost on redeploy.
+
+**Render (one blueprint, includes the disk):**
+1. Push this repo to GitHub (done — it's on the PR branch).
+2. Render → **New → Blueprint** → pick this repo. `render.yaml` provisions the
+   web service and a 1 GB disk at `/var/data` automatically.
+3. When prompted, set **`OWNER_PASSWORD`**. Deploy.
+4. You get `https://<name>.onrender.com` — the owner board. `/staff.html` is the
+   staff portal. `SECURE_COOKIES` turns on automatically via `NODE_ENV=production`.
+
+**Anywhere else (Railway, Fly, a VPS):** set `OWNER_PASSWORD`, `DATA_DIR` (a
+writable persistent path) and `NODE_ENV=production`, then `npm start`. A
+`Procfile` is included for buildpack-based hosts. See `.env.example` for the full
+list of environment variables.
 
 ## What makes the board smart
 
@@ -84,7 +114,7 @@ curl -X POST https://your-host/api/push \
 
 # batch: an event + a note in one call
 curl -X POST https://your-host/api/push \
-  -H 'Content-Type: application/json' -H 'x-api-key: owner-demo-key' \
+  -H 'Content-Type: application/json' -H 'x-api-key: priya-demo-key' \
   -d '[{"type":"event","data":{"title":"Lab call","date":"2026-07-06","start":"12:00","end":"12:30","workspace":"gmdental"}},
        {"type":"note","data":{"kind":"announcement","title":"New Saturday hours","body":"Clinic opens 10:00 from next week"}}]'
 ```
@@ -93,12 +123,17 @@ curl -X POST https://your-host/api/push \
 
 | Method & path | Auth | Purpose |
 |---|---|---|
-| `GET /api/board?date=YYYY-MM-DD` | none | Everything the board renders for that day |
-| `POST /api/push` | key | Create `task` / `email` / `summary` / `event` / `note` (single or batch) |
-| `PATCH /api/tasks/:id` | key | `{"status":"done"\|"open"}` and/or `{"pinned":true}` |
-| `PATCH /api/emails/:id` | key | `{"handled":true}` |
-| `GET /api/me` | key | Who a key belongs to |
-| `GET /api/stream` | none | Server-sent events; fires on every change |
+| `POST /api/login` | none | `{"password":"…"}` → sets the owner session cookie |
+| `POST /api/logout` | session | Ends the session |
+| `GET /api/session` | none | `{"authed":true,"name":"…"}` — used by the board to gate |
+| `GET /api/board?date=YYYY-MM-DD` | **session** | Everything the board renders for that day |
+| `POST /api/push` | session **or** key | Create `task` / `email` / `summary` / `event` / `note` (single or batch) |
+| `PATCH /api/tasks/:id` | session | `{"status":"done"\|"open"}` and/or `{"pinned":true}` |
+| `PATCH /api/emails/:id` | session | `{"handled":true}` |
+| `GET /api/me` | key | Who a staff key belongs to |
+| `GET /api/stream` | **session** | Server-sent events; fires on every change |
+
+"session" = owner cookie from `/api/login`; "key" = staff `x-api-key` header.
 
 Field notes: `priority` is 1 (must) / 2 (should) / 3 (nice); dates are
 `YYYY-MM-DD`; times are `HH:MM`; `urgency` is `high`/`normal`/`low`;
@@ -115,10 +150,12 @@ becomes the one inbox that only ever shows decisions.
 ## Architecture
 
 - `server.js` — Express API + static hosting + SSE broadcast
-- `lib/store.js` — JSON file persistence (`data/db.json`, atomic writes)
+- `lib/auth.js` — password hashing (scrypt), session tokens, cookie helpers
+- `lib/store.js` — JSON file persistence (`$DATA_DIR/db.json`, atomic writes)
 - `lib/seed.js` — demo data, regenerated relative to today
-- `public/` — owner board (`index.html`, `app.js`) and staff portal
-  (`staff.html`, `staff.js`), plain HTML/CSS/JS, no build step
+- `public/` — login (`login.html`), owner board (`index.html`, `app.js`) and
+  staff portal (`staff.html`, `staff.js`), plain HTML/CSS/JS, no build step
+- `render.yaml` / `Procfile` / `.env.example` — deployment
 
 Single small Node process, one JSON file, deployable on any $5 VPS,
 Render/Railway free tier, or a spare machine at the clinic.

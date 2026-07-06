@@ -3,10 +3,10 @@
 const state = {
   date: localISO(),
   ws: 'all',        // workspace filter
-  board: null,
-  key: localStorage.getItem('dash_key') || '',
-  who: ''
+  board: null
 };
+
+function gotoLogin() { location.replace('/login.html'); }
 
 // ------------------------------------------------------------------ helpers
 function localISO(d = new Date()) {
@@ -37,18 +37,19 @@ function inWs(item) {
 // --------------------------------------------------------------------- data
 async function loadBoard() {
   const res = await fetch(`/api/board?date=${state.date}`);
+  if (res.status === 401) { gotoLogin(); return; }
   state.board = await res.json();
   render();
 }
 
+// Owner writes ride on the session cookie (sent automatically).
 async function api(method, url, body) {
-  if (!state.key) { openKeyDialog(); throw new Error('no key'); }
   const res = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/json', 'x-api-key': state.key },
+    headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined
   });
-  if (res.status === 401) { openKeyDialog(); throw new Error('bad key'); }
+  if (res.status === 401) { gotoLogin(); throw new Error('unauthorized'); }
   if (!res.ok) throw new Error((await res.json()).error || res.statusText);
   return res.json();
 }
@@ -324,33 +325,22 @@ document.getElementById('prevDay').onclick = () => { state.date = shiftDate(stat
 document.getElementById('nextDay').onclick = () => { state.date = shiftDate(state.date, 1); loadBoard(); };
 document.getElementById('todayBtn').onclick = () => { state.date = localISO(); loadBoard(); };
 
-// ------------------------------------------------------------------ API key
-const dlg = document.getElementById('keyDialog');
-function openKeyDialog() {
-  document.getElementById('keyInput').value = state.key;
-  dlg.showModal();
-}
-document.getElementById('keyBtn').onclick = openKeyDialog;
-document.getElementById('keyCancel').onclick = () => dlg.close();
-document.getElementById('keySave').onclick = async () => {
-  state.key = document.getElementById('keyInput').value.trim();
-  localStorage.setItem('dash_key', state.key);
-  dlg.close();
-  await whoAmI();
+// -------------------------------------------------------------------- session
+document.getElementById('logoutBtn').onclick = async () => {
+  try { await fetch('/api/logout', { method: 'POST' }); } catch {}
+  gotoLogin();
 };
 
-async function whoAmI() {
-  if (!state.key) return;
+async function checkSession() {
   try {
-    const res = await fetch('/api/me', { headers: { 'x-api-key': state.key } });
-    if (res.ok) {
-      const me = await res.json();
-      state.who = me.name;
-      document.getElementById('keyWho').textContent = me.name;
-    } else {
-      document.getElementById('keyWho').textContent = 'Sign in';
-    }
-  } catch {}
+    const s = await fetch('/api/session').then(r => r.json());
+    if (!s.authed) { gotoLogin(); return false; }
+    document.getElementById('whoName').textContent = s.name;
+    document.getElementById('whoBadge').hidden = false;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // -------------------------------------------------------------- live stream
@@ -371,6 +361,9 @@ function connectStream() {
 // safety-net poll in case SSE is blocked by a proxy
 setInterval(loadBoard, 90000);
 
-loadBoard();
-whoAmI();
-connectStream();
+// Gate everything behind a valid session, then boot the board.
+(async () => {
+  if (!(await checkSession())) return; // redirects to login
+  await loadBoard();
+  connectStream();
+})();

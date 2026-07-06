@@ -3,19 +3,78 @@ const crypto = require('crypto');
 const path = require('path');
 const { load, save } = require('./lib/store');
 const { localISO } = require('./lib/seed');
+const authlib = require('./lib/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 let db = load();
+const saveQuiet = () => save(db); // persist without broadcasting to SSE clients
+
+// ---------------------------------------------------------------------- auth
+// Owner: signs in with OWNER_PASSWORD, gets a session cookie → full read/write.
+// Staff: send their personal key in x-api-key → may push data only.
+
+function ownerOnly(req, res, next) {
+  const session = authlib.sessionFromReq(db, req);
+  if (!session) return res.status(401).json({ error: 'Sign in required.' });
+  req.actor = { name: session.name, workspace: 'all', isOwner: true };
+  next();
+}
+
+// owner session OR a valid staff key
+function writeAuth(req, res, next) {
+  const session = authlib.sessionFromReq(db, req);
+  if (session) {
+    req.actor = { name: session.name, workspace: 'all', isOwner: true };
+    return next();
+  }
+  const key = req.get('x-api-key') || req.query.key;
+  const staff = key && db.staff.find(s => s.key === key);
+  if (!staff) {
+    return res.status(401).json({ error: 'Sign in or send a valid staff key in the x-api-key header.' });
+  }
+  req.actor = { name: staff.name, workspace: staff.workspace, isOwner: false };
+  next();
+}
+
+app.post('/api/login', (req, res) => {
+  if (!authlib.verifyPassword((req.body || {}).password)) {
+    return res.status(401).json({ error: 'Wrong password.' });
+  }
+  const token = authlib.createSession(db, saveQuiet);
+  res.setHeader('Set-Cookie', authlib.buildSetCookie(token));
+  res.json({ ok: true, name: authlib.OWNER_NAME });
+});
+
+app.post('/api/logout', (req, res) => {
+  const session = authlib.sessionFromReq(db, req);
+  if (session) authlib.destroySession(db, saveQuiet, session.token);
+  res.setHeader('Set-Cookie', authlib.buildClearCookie());
+  res.json({ ok: true });
+});
+
+// Lightweight check the owner board uses to decide login vs. render.
+app.get('/api/session', (req, res) => {
+  const session = authlib.sessionFromReq(db, req);
+  res.json(session ? { authed: true, name: session.name } : { authed: false });
+});
+
+// Staff portal identifies its user by key.
+app.get('/api/me', (req, res) => {
+  const key = req.get('x-api-key') || req.query.key;
+  const staff = key && db.staff.find(s => s.key === key);
+  if (!staff) return res.status(401).json({ error: 'Invalid or missing API key.' });
+  const { id, name, role, workspace } = staff;
+  res.json({ id, name, role, workspace });
+});
 
 // ---------------------------------------------------------------- live updates
 const sseClients = new Set();
 
-app.get('/api/stream', (req, res) => {
+app.get('/api/stream', ownerOnly, (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -32,21 +91,8 @@ function persist() {
   for (const res of sseClients) res.write(msg);
 }
 
-// ---------------------------------------------------------------------- auth
-function auth(req, res, next) {
-  const key = req.get('x-api-key') || req.query.key;
-  const staff = db.staff.find(s => s.key === key);
-  if (!staff) {
-    return res.status(401).json({ error: 'Invalid or missing API key. Send it in the x-api-key header.' });
-  }
-  req.staff = staff;
-  next();
-}
-
-app.get('/api/me', auth, (req, res) => {
-  const { id, name, role, workspace } = req.staff;
-  res.json({ id, name, role, workspace });
-});
+// Static files are served AFTER the API routes so /api/* is never shadowed.
+app.use(express.static(path.join(__dirname, 'public')));
 
 // -------------------------------------------------------------------- ingest
 function slug(s) {
@@ -136,7 +182,7 @@ const CREATORS = {
 const COLLECTIONS = { task: 'tasks', email: 'emails', summary: 'summaries', event: 'events', note: 'notes' };
 
 // Staff apps / other dashboards push items here. Accepts one item or a batch.
-app.post('/api/push', auth, (req, res) => {
+app.post('/api/push', writeAuth, (req, res) => {
   const items = Array.isArray(req.body) ? req.body : [req.body];
   const created = [];
   try {
@@ -145,7 +191,7 @@ app.post('/api/push', auth, (req, res) => {
       if (!CREATORS[type]) {
         throw new Error(`"type" must be one of: ${Object.keys(CREATORS).join(', ')}`);
       }
-      const record = CREATORS[type](item.data || {}, req.staff);
+      const record = CREATORS[type](item.data || {}, req.actor);
       // one summary per member+workspace+date — a resubmission replaces it
       if (type === 'summary') {
         db.summaries = db.summaries.filter(
@@ -162,7 +208,7 @@ app.post('/api/push', auth, (req, res) => {
   res.status(201).json({ created });
 });
 
-app.patch('/api/tasks/:id', auth, (req, res) => {
+app.patch('/api/tasks/:id', ownerOnly, (req, res) => {
   const task = db.tasks.find(t => t.id === req.params.id);
   if (!task) return res.status(404).json({ error: 'Task not found' });
   if (req.body.status === 'done' || req.body.status === 'open') {
@@ -174,7 +220,7 @@ app.patch('/api/tasks/:id', auth, (req, res) => {
   res.json(task);
 });
 
-app.patch('/api/emails/:id', auth, (req, res) => {
+app.patch('/api/emails/:id', ownerOnly, (req, res) => {
   const email = db.emails.find(e => e.id === req.params.id);
   if (!email) return res.status(404).json({ error: 'Email not found' });
   if (typeof req.body.handled === 'boolean') email.handled = req.body.handled;
@@ -224,7 +270,7 @@ function buildDigest(date, tasks, emails, events, summaries) {
   };
 }
 
-app.get('/api/board', (req, res) => {
+app.get('/api/board', ownerOnly, (req, res) => {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(req.query.date || '') ? req.query.date : localISO();
 
   const tasks = db.tasks.filter(t =>
@@ -260,4 +306,8 @@ app.get('/api/board', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Unified dashboard running at http://localhost:${PORT}`);
   console.log(`Staff portal at http://localhost:${PORT}/staff.html`);
+  if (authlib.USING_DEFAULT_PASSWORD) {
+    console.warn('\n⚠️  OWNER_PASSWORD is not set — using the default "changeme".');
+    console.warn('   Set OWNER_PASSWORD before exposing this app publicly.\n');
+  }
 });
