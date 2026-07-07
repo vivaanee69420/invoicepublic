@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead & Marketing Tracker</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark"></span>
+    <h1>Lead &amp; Marketing Tracker</h1>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="dashboard" role="tab">Dashboard</button>
+    <button class="tab" data-tab="leads" role="tab">Leads</button>
+    <button class="tab" data-tab="spend" role="tab">Ad Spend</button>
+  </nav>
+  <div class="whoami">
+    <label for="whoami-input">You are</label>
+    <input id="whoami-input" type="text" placeholder="Your name" title="Used to stamp entries you add">
+  </div>
+</header>
+
+<div class="filterbar" id="filterbar">
+  <div class="daterange" id="daterange"></div>
+  <select id="filter-source" title="Filter by source"></select>
+  <span class="filter-note" id="filter-note"></span>
+</div>
+
+<main>
+  <!-- ============ DASHBOARD ============ -->
+  <section id="tab-dashboard" class="tabpane active">
+    <div class="kpi-row" id="kpi-row"></div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <h2>Daily leads</h2>
+          <p class="card-sub">New enquiries per day, all sources</p>
+        </div>
+        <div class="chart" id="chart-trend"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Leads by source</h2>
+          <p class="card-sub">Where enquiries came from in this period</p>
+        </div>
+        <div class="chart" id="chart-sources"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <h2>Conversion funnel</h2>
+          <p class="card-sub">How far leads travel from enquiry to treatment</p>
+        </div>
+        <div class="chart" id="chart-funnel"></div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Spend vs revenue by platform</h2>
+          <p class="card-sub">Paid platforms only — is the money coming back?</p>
+        </div>
+        <div class="chart" id="chart-roi"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Source performance — what's working, what's not</h2>
+        <p class="card-sub">Cost per lead, conversion and return for every channel</p>
+      </div>
+      <div class="table-wrap"><table class="datatable" id="perf-table"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ LEADS ============ -->
+  <section id="tab-leads" class="tabpane">
+    <div class="card form-card">
+      <div class="card-head">
+        <h2 id="lead-form-title">Add a lead</h2>
+        <p class="card-sub">Fill this for every enquiry — phone call, walk-in, form fill, DM, anything</p>
+      </div>
+      <form id="lead-form" class="entry-form">
+        <div class="frow">
+          <label>Date *<input type="date" name="lead_date" required></label>
+          <label>Name *<input type="text" name="name" required placeholder="Patient / customer name"></label>
+          <label>Phone<input type="tel" name="phone" placeholder="98xxxxxxxx"></label>
+          <label>City<input type="text" name="city" placeholder="City"></label>
+        </div>
+        <div class="frow">
+          <label>Source *<select name="source" required></select></label>
+          <label>Source detail<input type="text" name="source_detail" placeholder="e.g. which page / who referred"></label>
+          <label>Campaign / Ad<input type="text" name="campaign" placeholder="Campaign or ad name"></label>
+          <label>Treatment interest<input type="text" name="treatment" placeholder="e.g. Hair Transplant" list="treatment-list"></label>
+          <datalist id="treatment-list"></datalist>
+        </div>
+        <div class="frow">
+          <label>Status<select name="status"></select></label>
+          <label>Quoted value (₹)<input type="number" name="quoted_value" min="0" step="100" placeholder="0"></label>
+          <label>Final value (₹)<input type="number" name="final_value" min="0" step="100" placeholder="0" title="Amount actually paid once treatment is booked/done"></label>
+          <label>Next follow-up<input type="date" name="next_followup"></label>
+        </div>
+        <div class="frow">
+          <label class="grow">Notes<input type="text" name="notes" placeholder="Anything the next person should know"></label>
+          <div class="form-actions">
+            <button type="submit" class="btn primary" id="lead-submit">Add lead</button>
+            <button type="button" class="btn" id="lead-cancel" hidden>Cancel</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head with-tools">
+        <div>
+          <h2>All leads</h2>
+          <p class="card-sub" id="leads-count"></p>
+        </div>
+        <div class="head-tools">
+          <input type="search" id="lead-search" placeholder="Search name, phone, campaign…">
+          <a class="btn" href="/api/export/leads.csv" download>Export CSV</a>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="datatable" id="leads-table"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ AD SPEND ============ -->
+  <section id="tab-spend" class="tabpane">
+    <div class="card form-card">
+      <div class="card-head">
+        <h2>Add ad spend</h2>
+        <p class="card-sub">Enter what you spent per platform each day — this powers cost-per-lead and ROI</p>
+      </div>
+      <form id="spend-form" class="entry-form">
+        <div class="frow">
+          <label>Date *<input type="date" name="spend_date" required></label>
+          <label>Platform *<select name="platform" required></select></label>
+          <label>Amount (₹) *<input type="number" name="amount" min="1" step="1" required placeholder="0"></label>
+          <label>Campaign<input type="text" name="campaign" placeholder="Campaign name"></label>
+          <label class="grow">Notes<input type="text" name="notes"></label>
+          <div class="form-actions"><button type="submit" class="btn primary">Add spend</button></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="card-head with-tools">
+        <div>
+          <h2>Spend entries</h2>
+          <p class="card-sub" id="spend-count"></p>
+        </div>
+        <div class="head-tools">
+          <a class="btn" href="/api/export/spend.csv" download>Export CSV</a>
+        </div>
+      </div>
+      <div class="table-wrap"><table class="datatable" id="spend-table"></table></div>
+    </div>
+  </section>
+</main>
+
+<div class="tooltip" id="tooltip" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
