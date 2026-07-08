@@ -39,6 +39,7 @@ db.exec(`
     next_followup TEXT NOT NULL DEFAULT '',
     entered_by    TEXT NOT NULL DEFAULT '',
     notes         TEXT NOT NULL DEFAULT '',
+    business      TEXT NOT NULL DEFAULT '',
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -50,18 +51,25 @@ db.exec(`
     campaign   TEXT NOT NULL DEFAULT '',
     entered_by TEXT NOT NULL DEFAULT '',
     notes      TEXT NOT NULL DEFAULT '',
+    business   TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_leads_date ON leads(lead_date);
   CREATE INDEX IF NOT EXISTS idx_spend_date ON spend(spend_date);
 `);
 
+// migrate databases created before the "business" dimension existed
+for (const table of ['leads', 'spend']) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!cols.includes('business')) db.exec(`ALTER TABLE ${table} ADD COLUMN business TEXT NOT NULL DEFAULT ''`);
+}
+
 const LEAD_FIELDS = [
   'lead_date', 'name', 'phone', 'city', 'source', 'source_detail', 'campaign',
   'treatment', 'status', 'quoted_value', 'final_value', 'next_followup',
-  'entered_by', 'notes',
+  'entered_by', 'notes', 'business',
 ];
-const SPEND_FIELDS = ['spend_date', 'platform', 'amount', 'campaign', 'entered_by', 'notes'];
+const SPEND_FIELDS = ['spend_date', 'platform', 'amount', 'campaign', 'entered_by', 'notes', 'business'];
 const NUMERIC_FIELDS = new Set(['quoted_value', 'final_value', 'amount']);
 
 function pick(body, fields) {

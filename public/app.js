@@ -15,9 +15,13 @@ const SOURCES = [
   { name: 'Instagram',          color: 'var(--src-3)' },
   { name: 'SEO / Website',      color: 'var(--src-4)' },
   { name: 'Exhibition / Event', color: 'var(--src-5)' },
-  { name: 'Walk-in',            color: 'var(--src-6)' },
+  { name: 'Leaflets',           color: 'var(--src-6)' },
   { name: 'Referral',           color: 'var(--src-7)' },
-  { name: 'JustDial',           color: 'var(--src-8)' },
+  { name: 'Care Homes',         color: 'var(--src-8)' },
+  // beyond the 8 color slots — these wear the muted slot; every place a source
+  // appears it sits next to its name label, so identity never rides on color alone
+  { name: 'Other Businesses',   color: 'var(--src-9)' },
+  { name: 'Walk-in',            color: 'var(--src-9)' },
   { name: 'Other',              color: 'var(--src-9)' },
 ];
 const sourceColor = (name) =>
@@ -28,7 +32,8 @@ const STAGES = ['New', 'Contacted', 'Consultation Booked', 'Consultation Done', 
 const STATUSES = [...STAGES, 'Lost'];
 const stageIndex = (status) => STAGES.indexOf(status); // -1 for Lost
 
-const DEFAULT_TREATMENTS = ['Hair Transplant', 'PRP Therapy', 'Skin Treatment', 'Laser Hair Removal', 'Dental Implant', 'Consultation Only'];
+// The treatment/service suggestion list builds itself from what the team enters.
+const DEFAULT_TREATMENTS = [];
 
 const ORDINAL = ['var(--ord-1)', 'var(--ord-2)', 'var(--ord-3)', 'var(--ord-4)', 'var(--ord-5)', 'var(--ord-6)'];
 
@@ -44,6 +49,7 @@ const state = {
   from: null,          // ISO date or null
   to: null,
   source: '',          // '' = all sources
+  business: '',        // '' = all businesses
   search: '',
   editingLead: null,
   editingSpend: null,
@@ -79,17 +85,16 @@ function svg(tag, attrs = {}, children = []) {
   return node;
 }
 
-const nfInt = new Intl.NumberFormat('en-IN');
+const nfInt = new Intl.NumberFormat('en-GB');
 const fmtInt = (n) => nfInt.format(Math.round(n));
 
-function fmtMoney(n) { // Indian compact: ₹12.5L / ₹1.2Cr
+function fmtMoney(n) { // compact: £12.4k / £1.2M
   const v = Math.abs(n);
-  if (v >= 1e7) return '₹' + (n / 1e7).toFixed(v >= 1e8 ? 0 : 1) + 'Cr';
-  if (v >= 1e5) return '₹' + (n / 1e5).toFixed(v >= 1e6 ? 0 : 1) + 'L';
-  if (v >= 1e3) return '₹' + fmtInt(n);
-  return '₹' + Math.round(n);
+  if (v >= 1e6) return '£' + (n / 1e6).toFixed(v >= 1e7 ? 0 : 1) + 'M';
+  if (v >= 1e4) return '£' + (n / 1e3).toFixed(v >= 1e5 ? 0 : 1) + 'k';
+  return '£' + fmtInt(n);
 }
-const fmtMoneyFull = (n) => '₹' + fmtInt(n);
+const fmtMoneyFull = (n) => '£' + fmtInt(n);
 const fmtPct = (n) => (isFinite(n) ? (n * 100).toFixed(n * 100 >= 10 ? 0 : 1) + '%' : '—');
 
 const isoToday = () => new Date().toISOString().slice(0, 10);
@@ -100,7 +105,7 @@ function isoDaysAgo(days) {
 }
 function fmtDateShort(iso) {
   const d = new Date(iso + 'T00:00:00');
-  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 function niceTicks(maxVal, count = 4) {
@@ -166,12 +171,23 @@ function inRange(dateIso, from, to) {
 function filteredLeads() {
   const [from, to] = currentRange();
   return state.leads.filter((l) =>
-    inRange(l.lead_date, from, to) && (!state.source || l.source === state.source));
+    inRange(l.lead_date, from, to)
+    && (!state.source || l.source === state.source)
+    && (!state.business || (l.business || '') === state.business));
 }
 function filteredSpend() {
   const [from, to] = currentRange();
   return state.spend.filter((s) =>
-    inRange(s.spend_date, from, to) && (!state.source || s.platform === state.source));
+    inRange(s.spend_date, from, to)
+    && (!state.source || s.platform === state.source)
+    && (!state.business || (s.business || '') === state.business));
+}
+
+function knownBusinesses() {
+  const set = new Set();
+  for (const l of state.leads) if (l.business) set.add(l.business);
+  for (const s of state.spend) if (s.business) set.add(s.business);
+  return [...set].sort();
 }
 
 // ---------------------------------------------------------------------------
@@ -324,7 +340,7 @@ function renderTrend(leads) {
       const n = rec.bySource.get(s.name);
       if (n) rows.push({ value: fmtInt(n), name: s.name, color: s.color });
     }
-    showTooltip(ev.clientX, ev.clientY, new Date(day + 'T00:00:00').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }), rows);
+    showTooltip(ev.clientX, ev.clientY, new Date(day + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }), rows);
   });
   overlay.addEventListener('pointerleave', () => {
     cross.setAttribute('visibility', 'hidden');
@@ -602,7 +618,7 @@ function renderLeadsTable() {
 
   $('#leads-count').textContent = `${fmtInt(rows.length)} lead${rows.length === 1 ? '' : 's'} in the selected period`;
 
-  const head = el('tr', {}, ['Date', 'Name', 'Phone', 'Source', 'Campaign', 'Treatment', 'Status', 'Value (₹)', 'Follow-up', 'By', ''].map((h) => el('th', { text: h })));
+  const head = el('tr', {}, ['Date', 'Name', 'Phone', 'Source', 'Business', 'Campaign', 'Treatment', 'Status', 'Value (£)', 'Follow-up', 'By', ''].map((h) => el('th', { text: h })));
 
   const shown = state.showAllLeads ? rows : rows.slice(0, TABLE_LIMIT);
   const body = shown.map((l) => {
@@ -622,6 +638,7 @@ function renderLeadsTable() {
       el('td', {}, [el('strong', { text: l.name })]),
       el('td', { text: l.phone || '—' }),
       el('td', {}, [el('span', { class: 'src-dot', style: `background:${sourceColor(l.source)}` }), el('span', { text: l.source })]),
+      el('td', { class: 'muted', text: l.business || '—' }),
       el('td', { class: 'muted', text: l.campaign || '—' }),
       el('td', { text: l.treatment || '—' }),
       el('td', {}, [statusSel]),
@@ -646,7 +663,7 @@ function renderLeadsTable() {
   });
 
   if (rows.length > shown.length) {
-    body.push(el('tr', {}, [el('td', { colspan: 11 }, [
+    body.push(el('tr', {}, [el('td', { colspan: 12 }, [
       el('button', {
         class: 'btn small', text: `Show all ${fmtInt(rows.length)} leads`,
         onclick: () => { state.showAllLeads = true; renderLeadsTable(); },
@@ -662,7 +679,7 @@ function leadForm() { return $('#lead-form'); }
 function startEditLead(l) {
   state.editingLead = l.id;
   const f = leadForm();
-  for (const name of ['lead_date', 'name', 'phone', 'city', 'source', 'source_detail', 'campaign', 'treatment', 'status', 'quoted_value', 'final_value', 'next_followup', 'notes']) {
+  for (const name of ['lead_date', 'name', 'phone', 'city', 'business', 'source', 'source_detail', 'campaign', 'treatment', 'status', 'quoted_value', 'final_value', 'next_followup', 'notes']) {
     if (f.elements[name]) f.elements[name].value = l[name] ?? '';
   }
   $('#lead-form-title').textContent = `Editing: ${l.name}`;
@@ -713,11 +730,12 @@ function renderSpendTable() {
   const total = rows.reduce((a, r) => a + r.amount, 0);
   $('#spend-count').textContent = `${fmtInt(rows.length)} entries · ${fmtMoneyFull(total)} total in the selected period`;
 
-  const head = el('tr', {}, ['Date', 'Platform', 'Amount (₹)', 'Campaign', 'By', 'Notes', ''].map((h) => el('th', { text: h })));
+  const head = el('tr', {}, ['Date', 'Platform', 'Business', 'Amount (£)', 'Campaign', 'By', 'Notes', ''].map((h) => el('th', { text: h })));
   const shown = state.showAllSpend ? rows : rows.slice(0, TABLE_LIMIT);
   const body = shown.map((r) => el('tr', {}, [
     el('td', { class: 'muted', text: fmtDateShort(r.spend_date) }),
     el('td', {}, [el('span', { class: 'src-dot', style: `background:${sourceColor(r.platform)}` }), el('span', { text: r.platform })]),
+    el('td', { class: 'muted', text: r.business || '—' }),
     el('td', { class: 'num', text: fmtInt(r.amount) }),
     el('td', { class: 'muted', text: r.campaign || '—' }),
     el('td', { class: 'muted', text: r.entered_by || '—' }),
@@ -738,7 +756,7 @@ function renderSpendTable() {
     ]),
   ]));
   if (rows.length > shown.length) {
-    body.push(el('tr', {}, [el('td', { colspan: 7 }, [
+    body.push(el('tr', {}, [el('td', { colspan: 8 }, [
       el('button', {
         class: 'btn small', text: `Show all ${fmtInt(rows.length)} entries`,
         onclick: () => { state.showAllSpend = true; renderSpendTable(); },
@@ -753,7 +771,7 @@ function spendForm() { return $('#spend-form'); }
 function startEditSpend(r) {
   state.editingSpend = r.id;
   const f = spendForm();
-  for (const name of ['spend_date', 'platform', 'amount', 'campaign', 'notes']) {
+  for (const name of ['spend_date', 'platform', 'business', 'amount', 'campaign', 'notes']) {
     if (f.elements[name]) f.elements[name].value = r[name] ?? '';
   }
   f.querySelector('button[type=submit]').textContent = 'Save changes';
@@ -819,6 +837,20 @@ function renderFilterBar() {
     el('option', { value: '', text: 'All sources' }),
     ...SOURCES.map((s) => el('option', { value: s.name, text: s.name, ...(s.name === state.source ? { selected: '' } : {}) })));
   sel.onchange = () => { state.source = sel.value; renderAll(); };
+
+  renderBusinessFilter();
+}
+
+// Rebuilt on every data change so new business names appear as options.
+// Hidden entirely until someone tags a lead or spend entry with a business.
+function renderBusinessFilter() {
+  const bsel = $('#filter-business');
+  const businesses = knownBusinesses();
+  bsel.hidden = businesses.length === 0;
+  bsel.replaceChildren(
+    el('option', { value: '', text: 'All businesses' }),
+    ...businesses.map((b) => el('option', { value: b, text: b, ...(b === state.business ? { selected: '' } : {}) })));
+  bsel.onchange = () => { state.business = bsel.value; renderAll(); };
 }
 
 // ---------------------------------------------------------------------------
@@ -839,12 +871,14 @@ function renderAll() {
   renderLeadsTable();
   renderSpendTable();
   renderTreatmentList();
+  renderBusinessFilter();
 }
 
 function renderTreatmentList() {
   const seen = new Set(DEFAULT_TREATMENTS);
   for (const l of state.leads) if (l.treatment) seen.add(l.treatment);
   $('#treatment-list').replaceChildren(...[...seen].sort().map((t) => el('option', { value: t })));
+  $('#business-list').replaceChildren(...knownBusinesses().map((b) => el('option', { value: b })));
 }
 
 // ---------------------------------------------------------------------------

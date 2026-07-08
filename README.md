@@ -1,9 +1,10 @@
 # Lead & Marketing Tracker
 
 A simple, self-hosted dashboard for tracking **every lead from every source** —
-Facebook, Google Ads, Instagram, SEO, exhibitions, walk-ins, referrals, JustDial
-and anything else — plus your **daily ad spend**, so you can see exactly which
-platform is working and which is burning money.
+Facebook, Google Ads, Instagram, SEO, exhibitions/events, leaflets, referrals,
+care homes, other businesses, walk-ins and anything else — plus your **daily ad
+spend** (in £), so you can see exactly which platform is working and which is
+burning money.
 
 Built for a team: everyone opens the same page, adds leads and spend as they
 come in, and the dashboard updates from a single shared database.
@@ -20,9 +21,11 @@ come in, and the dashboard updates from a single shared database.
   - Per-source performance table — cost/lead, conversion %, cost/treatment,
     revenue and return for every channel, with the winners and losers marked
 - **Leads tab** — one form your whole team fills for every enquiry: date,
-  name, phone, source, campaign/ad, treatment interest, quoted & final value,
-  status, follow-up date, who entered it, notes. Update a lead's status right
-  from the table as it moves through the funnel.
+  name, phone, source, business, campaign/ad, treatment/service interest,
+  quoted & final £ value, status, follow-up date, who entered it, notes.
+  Update a lead's status right from the table as it moves through the funnel.
+- **Business filter** — tag every lead and spend entry with which business it
+  belongs to, then divide the whole dashboard per business with one dropdown.
 - **Ad Spend tab** — enter what you spent per platform per day. This is what
   powers cost-per-lead and ROI, so make it a daily habit.
 - **CSV export** for both leads and spend (opens in Excel / Google Sheets).
@@ -63,7 +66,7 @@ copying that file anywhere safe. Delete it to start fresh.
 1. Every enquiry — call, walk-in, DM, form fill — goes in as a **lead** with
    the right **source** the moment it arrives.
 2. Whoever runs the ads enters the day's **spend per platform** each evening.
-3. As leads progress, update their **status** (and the final ₹ value once a
+3. As leads progress, update their **status** (and the final £ value once a
    treatment is booked) straight from the Leads table.
 4. Check the dashboard weekly: the **Source performance** table tells you
    which platform earns more than it costs (green ×) and which doesn't (red ×).

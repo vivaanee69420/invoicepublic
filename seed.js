@@ -33,6 +33,7 @@ db.exec(`
     next_followup TEXT NOT NULL DEFAULT '',
     entered_by    TEXT NOT NULL DEFAULT '',
     notes         TEXT NOT NULL DEFAULT '',
+    business      TEXT NOT NULL DEFAULT '',
     created_at    TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -44,26 +45,30 @@ db.exec(`
     campaign   TEXT NOT NULL DEFAULT '',
     entered_by TEXT NOT NULL DEFAULT '',
     notes      TEXT NOT NULL DEFAULT '',
+    business   TEXT NOT NULL DEFAULT '',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
 
 const SOURCES = [
-  // [source, daily lead weight, daily ad spend ₹ (0 = organic/offline)]
-  ['Facebook', 5, 3500],
-  ['Google Ads', 4, 4000],
-  ['Instagram', 3, 2000],
+  // [source, daily lead weight, daily ad spend £ (0 = organic/offline/outreach)]
+  ['Facebook', 5, 120],
+  ['Google Ads', 4, 150],
+  ['Instagram', 3, 70],
   ['SEO / Website', 2, 0],
-  ['Exhibition / Event', 2, 1500],
-  ['Walk-in', 1.5, 0],
+  ['Exhibition / Event', 2, 60],
+  ['Leaflets', 1.5, 25],
   ['Referral', 1.5, 0],
-  ['JustDial', 1, 800],
+  ['Care Homes', 1.5, 0],
+  ['Other Businesses', 1, 0],
+  ['Walk-in', 1, 0],
 ];
 const STATUSES = ['New', 'Contacted', 'Consultation Booked', 'Consultation Done', 'Treatment Booked', 'Treatment Done', 'Lost'];
-const TREATMENTS = ['Hair Transplant', 'PRP Therapy', 'Skin Treatment', 'Laser Hair Removal', 'Dental Implant', 'Consultation Only'];
-const NAMES = ['Rahul Sharma', 'Priya Patel', 'Amit Kumar', 'Sneha Reddy', 'Vikram Singh', 'Anjali Gupta', 'Rohan Mehta', 'Kavita Joshi', 'Suresh Nair', 'Deepa Iyer', 'Arjun Desai', 'Pooja Verma', 'Manish Agarwal', 'Ritu Malhotra', 'Sanjay Rao'];
+const TREATMENTS = ['Physiotherapy', 'Podiatry', 'Health Assessment', 'Home Visit', 'Dental Care', 'Consultation Only'];
+const NAMES = ['James Smith', 'Sarah Jones', 'David Williams', 'Emma Taylor', 'Michael Brown', 'Laura Davies', 'Robert Evans', 'Sophie Wilson', 'Thomas Johnson', 'Rachel Roberts', 'Daniel Walker', 'Hannah Wright', 'Andrew Thompson', 'Charlotte White', 'Mark Hughes'];
 const TEAM = ['Reception', 'Dr. Gaurav', 'Marketing Team', 'Front Desk'];
-const CITIES = ['Mumbai', 'Pune', 'Thane', 'Navi Mumbai', 'Nashik'];
+const CITIES = ['London', 'Manchester', 'Birmingham', 'Leeds', 'Leicester'];
+const BUSINESSES = ['Business A', 'Business B']; // rename to your real businesses
 
 // Deterministic pseudo-random so re-runs on a fresh DB give the same demo.
 let s = 42;
@@ -71,9 +76,9 @@ const rand = () => (s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
 const pickFrom = (arr) => arr[Math.floor(rand() * arr.length)];
 
 const insertLead = db.prepare(`INSERT INTO leads
-  (lead_date, name, phone, city, source, campaign, treatment, status, quoted_value, final_value, entered_by, notes)
-  VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`);
-const insertSpend = db.prepare(`INSERT INTO spend (spend_date, platform, amount, campaign, entered_by) VALUES (?,?,?,?,?)`);
+  (lead_date, name, phone, city, source, campaign, treatment, status, quoted_value, final_value, entered_by, notes, business)
+  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+const insertSpend = db.prepare(`INSERT INTO spend (spend_date, platform, amount, campaign, entered_by, business) VALUES (?,?,?,?,?,?)`);
 
 const DAYS = 45;
 const today = new Date();
@@ -98,20 +103,20 @@ for (let d = DAYS; d >= 0; d--) {
         const maxStage = Math.min(5, Math.floor(recency * 6 + rand() * 2));
         status = STATUSES[Math.max(0, Math.min(5, Math.floor(rand() * (maxStage + 1))))];
       }
-      const quoted = 15000 + Math.floor(rand() * 12) * 5000;
+      const quoted = 400 + Math.floor(rand() * 12) * 150;
       const done = status === 'Treatment Done' || status === 'Treatment Booked';
       insertLead.run(
-        iso, pickFrom(NAMES), `98${String(Math.floor(rand() * 1e8)).padStart(8, '0')}`,
+        iso, pickFrom(NAMES), `07${String(Math.floor(rand() * 1e9)).padStart(9, '0')}`,
         pickFrom(CITIES), source,
         dailySpend > 0 ? `${source.split(' ')[0]} Campaign ${1 + Math.floor(rand() * 3)}` : '',
         pickFrom(TREATMENTS), status, quoted,
-        done ? quoted * (0.8 + rand() * 0.3) : 0,
-        pickFrom(TEAM), '',
+        done ? Math.round(quoted * (0.8 + rand() * 0.3)) : 0,
+        pickFrom(TEAM), '', pickFrom(BUSINESSES),
       );
       leadCount++;
     }
     if (dailySpend > 0) {
-      insertSpend.run(iso, source, Math.round(dailySpend * (0.7 + rand() * 0.6)), `${source.split(' ')[0]} Campaign 1`, 'Marketing Team');
+      insertSpend.run(iso, source, Math.round(dailySpend * (0.7 + rand() * 0.6)), `${source.split(' ')[0]} Campaign 1`, 'Marketing Team', pickFrom(BUSINESSES));
       spendCount++;
     }
   }

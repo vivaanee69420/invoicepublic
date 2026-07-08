@@ -23,10 +23,10 @@
   --src-3: #eda100;  /* Instagram — yellow */
   --src-4: #008300;  /* SEO / Website — green */
   --src-5: #4a3aa7;  /* Exhibition / Event — violet */
-  --src-6: #e34948;  /* Walk-in — red */
+  --src-6: #e34948;  /* Leaflets — red */
   --src-7: #e87ba4;  /* Referral — magenta */
-  --src-8: #eb6834;  /* JustDial — orange */
-  --src-9: #898781;  /* Other — muted */
+  --src-8: #eb6834;  /* Care Homes — orange */
+  --src-9: #898781;  /* Other Businesses / Walk-in / Other — muted */
 
   /* ordinal funnel ramp (blue, steps 250→650) */
   --ord-1: #86b6ef;

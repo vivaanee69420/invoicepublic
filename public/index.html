@@ -28,6 +28,7 @@
 <div class="filterbar" id="filterbar">
   <div class="daterange" id="daterange"></div>
   <select id="filter-source" title="Filter by source"></select>
+  <select id="filter-business" title="Filter by business"></select>
   <span class="filter-note" id="filter-note"></span>
 </div>
 
@@ -90,20 +91,22 @@
         <div class="frow">
           <label>Date *<input type="date" name="lead_date" required></label>
           <label>Name *<input type="text" name="name" required placeholder="Patient / customer name"></label>
-          <label>Phone<input type="tel" name="phone" placeholder="98xxxxxxxx"></label>
-          <label>City<input type="text" name="city" placeholder="City"></label>
+          <label>Phone<input type="tel" name="phone" placeholder="07xxx xxxxxx"></label>
+          <label>City / Area<input type="text" name="city" placeholder="City or area"></label>
+          <label>Business<input type="text" name="business" placeholder="Which business is this for" list="business-list"></label>
+          <datalist id="business-list"></datalist>
         </div>
         <div class="frow">
           <label>Source *<select name="source" required></select></label>
           <label>Source detail<input type="text" name="source_detail" placeholder="e.g. which page / who referred"></label>
           <label>Campaign / Ad<input type="text" name="campaign" placeholder="Campaign or ad name"></label>
-          <label>Treatment interest<input type="text" name="treatment" placeholder="e.g. Hair Transplant" list="treatment-list"></label>
+          <label>Treatment / Service interest<input type="text" name="treatment" placeholder="What are they interested in" list="treatment-list"></label>
           <datalist id="treatment-list"></datalist>
         </div>
         <div class="frow">
           <label>Status<select name="status"></select></label>
-          <label>Quoted value (₹)<input type="number" name="quoted_value" min="0" step="100" placeholder="0"></label>
-          <label>Final value (₹)<input type="number" name="final_value" min="0" step="100" placeholder="0" title="Amount actually paid once treatment is booked/done"></label>
+          <label>Quoted value (£)<input type="number" name="quoted_value" min="0" step="10" placeholder="0"></label>
+          <label>Final value (£)<input type="number" name="final_value" min="0" step="10" placeholder="0" title="Amount actually paid once treatment is booked/done"></label>
           <label>Next follow-up<input type="date" name="next_followup"></label>
         </div>
         <div class="frow">
@@ -142,7 +145,8 @@
         <div class="frow">
           <label>Date *<input type="date" name="spend_date" required></label>
           <label>Platform *<select name="platform" required></select></label>
-          <label>Amount (₹) *<input type="number" name="amount" min="1" step="1" required placeholder="0"></label>
+          <label>Amount (£) *<input type="number" name="amount" min="0.01" step="0.01" required placeholder="0"></label>
+          <label>Business<input type="text" name="business" placeholder="Which business is this for" list="business-list"></label>
           <label>Campaign<input type="text" name="campaign" placeholder="Campaign name"></label>
           <label class="grow">Notes<input type="text" name="notes"></label>
           <div class="form-actions"><button type="submit" class="btn primary">Add spend</button></div>
