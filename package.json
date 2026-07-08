@@ -1,0 +1,14 @@
+{
+  "name": "lead-tracker",
+  "version": "1.0.0",
+  "description": "Marketing lead & ad-spend tracking dashboard — track every lead source (Facebook, Google, Instagram, SEO, walk-ins, referrals...) and see what's working.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node seed.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}
