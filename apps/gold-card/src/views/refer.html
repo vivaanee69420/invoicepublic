@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Referral · GM Dental</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+    }
+    .container { max-width: 500px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #d4af37;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .benefits {
+      background: rgba(212, 175, 55, 0.1);
+      border-left: 4px solid #d4af37;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .benefits-list {
+      list-style: none;
+    }
+    .benefits-list li {
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+    }
+    .benefits-list li:before {
+      content: "✓ ";
+      color: #d4af37;
+      font-weight: 700;
+      margin-right: 0.5rem;
+    }
+    .form-section {
+      background: rgba(15, 23, 42, 0.5);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-title {
+      color: #d4af37;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      color: #cbd5e1;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #e2e8f0;
+      font-size: 1rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.1);
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    input[type="checkbox"] {
+      width: auto;
+      margin-top: 0.25rem;
+      cursor: pointer;
+    }
+    .checkbox-label {
+      font-size: 0.875rem;
+      line-height: 1.5;
+      margin: 0;
+      cursor: pointer;
+    }
+    .required-note {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: #d4af37;
+      color: #0f172a;
+      border: none;
+      border-radius: 0.375rem;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { background: #e8c547; }
+    button:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>GM Dental · Gold Card</header>
+    <div class="hero">
+      <div class="hero-title">You've been referred to GM Dental by {{referrerName}}</div>
+      <div class="benefits">
+        <div class="benefits-list">
+          <li>Free consultation</li>
+          <li>5% off your treatment plan</li>
+        </div>
+      </div>
+    </div>
+    <form class="form-section" method="POST" action="/r/{{code}}/inquiry">
+      <div class="form-title">Your details</div>
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input type="text" id="name" name="prospect_name" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="prospect_phone">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="prospect_email">
+      </div>
+      <div class="form-group">
+        <label for="treatment">Treatment interest</label>
+        <select id="treatment" name="treatment_interest">
+          <option value="implants">Implants</option>
+          <option value="aligners">Aligners</option>
+          <option value="bonding">Bonding</option>
+          <option value="veneers">Veneers</option>
+          <option value="not_sure" selected>Not sure</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="consent" name="consent" value="on" required>
+        <label for="consent" class="checkbox-label">I consent to be contacted about my referral and dental offers from GM Dental</label>
+      </div>
+      <button type="submit">Request my free consultation</button>
+      <div class="required-note">One of phone or email is required.</div>
+    </form>
+  </div>
+</body>
+</html>
