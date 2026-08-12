@@ -1,0 +1,23 @@
+{
+  "name": "gold-card",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "GM Dental Gold Card referral app — QR referral cards, reward ledger, referral pipeline (spec: docs/specs/01-gold-card-referral-app.md)",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "test": "tsx --test tests/app.test.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "@types/qrcode": "^1.5.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
