@@ -1,6 +1,6 @@
 # Gold Card — patient referral app
 
-Gold Card is a dental referral rewards platform for GM Dental that enables dentists and hygienists to share patient referral cards (QR codes), track referrals through a treatment pipeline, and automatically generate rewards based on completed treatments. Referrers use scannable cards to drive patient inquiries; inquiries advance through a status flow (new → contacted → booked → attended → treatment agreed → treatment completed) with optional "lost" exit. Upon treatment completion, active reward rules (fixed or percentage-based with caps) automatically compute and create rewards that flow through approval and payout stages. See the [full specification](../../docs/specs/01-gold-card-referral-app.md) for design rationale and Phase 2 roadmap.
+Gold Card is GM Dental's patient referral system. Existing patients get a digital gold card that **installs to their phone's home screen like an app (PWA)** — one tap opens their personal QR code. A friend scans it, lands on a referral page, signs up, and a member of the team contacts them to book a consultation. Inquiries advance through a status flow (new → contacted → booked → attended → treatment agreed → treatment completed, with a "lost" exit), and on completion the referrer automatically earns the configured reward — **by default a £25 credit off their next treatment** (seeded on first run; fixed or percentage-with-cap rules configurable per practice). Credits flow through pending → ready-to-use → redeemed on the patient's card. See the [full specification](../../docs/specs/01-gold-card-referral-app.md) for design rationale and Phase 2 roadmap.
 
 ## Quickstart
 
@@ -25,11 +25,13 @@ Then visit:
 3. **Treatment pipeline**: Admin advances the inquiry through stages: `contacted`, `booked`, `attended`, `treatment_agreed`, then `treatment_completed`. Any non-terminal state can transition to `lost` (e.g., if the patient cancels).
 
 4. **Reward calculation**: When an inquiry reaches `treatment_completed`, the system applies active reward rules based on the referrer's practice:
-   - **Fixed rule**: Flat amount (e.g., £25 per completed referral)
+   - **Fixed rule**: Flat credit — the default rule seeded on first run is £25 (2500 pennies) off the referrer's next treatment
    - **Percent rule**: Percentage of treatment value (e.g., 5% capped at £50)
    - A reward row is created in `pending` status.
 
-5. **Reward lifecycle**: Pending rewards can be `approved`, then marked `paid`, or `void`ed if needed. Rewards are tracked in integer pennies (e.g., £25.50 = 2550).
+5. **Reward lifecycle**: Pending credits are `approved` (shown to the patient as "Ready to use"), then marked `paid` when redeemed against their next treatment, or `void`ed if needed. Amounts are tracked in integer pennies (e.g., £25.50 = 2550).
+
+6. **Phone app (PWA)**: The card page serves a per-referrer web-app manifest (`/card/CODE/manifest.webmanifest`), a service worker (`/sw.js`) for offline reopening, and home-screen icons. On Android/Chrome an "Add to home screen" button appears on the card; on iPhone the card shows Share → Add to Home Screen instructions. Once installed it opens full-screen straight to the QR code.
 
 ## API Reference
 

@@ -1,4 +1,5 @@
 import express from 'express';
+import { fileURLToPath } from 'url';
 import { publicRoutes } from './routes/public.js';
 import { adminRoutes } from './routes/admin.js';
 import { Db } from './db.js';
@@ -15,6 +16,7 @@ export function createApp(deps: AppDeps): express.Express {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  app.use(express.static(fileURLToPath(new URL('./public', import.meta.url))));
   app.use('/', publicRoutes(deps));
   app.use('/', adminRoutes(deps));
 

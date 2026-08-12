@@ -236,7 +236,7 @@
           <option value="fixed">Fixed</option>
           <option value="percent">Percent</option>
         </select>
-        <input type="number" id="ruleValue" placeholder="Value (pennies for fixed, % for percent)" />
+        <input type="number" id="ruleValue" placeholder="Value (pennies for fixed, e.g. 2500 = £25 credit; % for percent)" />
         <input type="number" id="ruleCap" placeholder="Cap (pennies, optional)" />
         <input type="number" id="ruleMin" placeholder="Min treatment value (pennies)" />
         <button onclick="createRule()" style="grid-column: 1/-1;">Create Rule</button>
@@ -340,7 +340,7 @@
         <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value">${stats.completed}</div></div>
         <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">£${(stats.rewards_pennies.pending / 100).toFixed(2)}</div></div>
         <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value">£${(stats.rewards_pennies.approved / 100).toFixed(2)}</div></div>
-        <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value">£${(stats.rewards_pennies.paid / 100).toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Redeemed</div><div class="stat-value">£${(stats.rewards_pennies.paid / 100).toFixed(2)}</div></div>
       `;
 
       const status = document.getElementById('filterStatus').value;
@@ -389,7 +389,7 @@
           const acts = [];
           if (r.status === 'pending') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'approved')">Approve</button>`);
           if (r.status === 'pending' || r.status === 'approved') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'void')" class="danger">Void</button>`);
-          if (r.status === 'approved') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'paid')">Mark Paid</button>`);
+          if (r.status === 'approved') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'paid')">Mark Redeemed</button>`);
           return `
             <tr>
               <td>${r.id}</td>

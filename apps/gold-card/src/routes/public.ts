@@ -31,9 +31,62 @@ function formatPennies(p: number): string {
   return '£' + (p / 100).toFixed(2);
 }
 
+// Patient-facing labels: rewards are credit toward the referrer's next treatment.
+const REWARD_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  approved: 'Ready to use',
+  paid: 'Redeemed',
+  void: 'Cancelled',
+};
+
+const SERVICE_WORKER_JS = `
+const CACHE = 'goldcard-v1';
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request).then((res) => {
+      const copy = res.clone();
+      caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+      return res;
+    }).catch(() => caches.match(e.request))
+  );
+});
+`;
+
 export function publicRoutes(deps: AppDeps): Router {
   router.get('/healthz', (req, res) => {
     res.json({ ok: true });
+  });
+
+  router.get('/sw.js', (req, res) => {
+    res.type('application/javascript').send(SERVICE_WORKER_JS);
+  });
+
+  // Per-card web-app manifest so the card installs to the home screen and
+  // opens straight to this referrer's QR code.
+  router.get('/card/:code/manifest.webmanifest', (req, res) => {
+    const { code } = req.params;
+    const referrer = deps.db.prepare(
+      'SELECT id FROM referrers WHERE referral_code = ?'
+    ).get(code);
+    if (!referrer) return res.status(404).json({ error: 'not_found' });
+
+    res.type('application/manifest+json').json({
+      name: 'GM Dental Gold Card',
+      short_name: 'Gold Card',
+      description: 'Your GM Dental referral card — show the QR code to friends.',
+      start_url: `/card/${code}`,
+      scope: '/card/',
+      display: 'standalone',
+      background_color: '#0f172a',
+      theme_color: '#0f172a',
+      icons: [
+        { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+        { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
+    });
   });
 
   router.get('/card/:code', async (req, res) => {
@@ -60,20 +113,24 @@ export function publicRoutes(deps: AppDeps): Router {
 
     let rewardsRows = '';
     if (rewards.length === 0) {
-      rewardsRows = '<tr><td colspan="3">No rewards yet — share your card!</td></tr>';
+      rewardsRows = '<tr><td colspan="3">No credits yet — share your card!</td></tr>';
     } else {
       rewardsRows = rewards
         .map((rw) => {
           const date = new Date(rw.created_at).toLocaleDateString();
           const amount = formatPennies(rw.amount_pennies);
-          const statusBadge = `<span class="badge badge-${rw.status}">${escapeHtml(rw.status)}</span>`;
+          const label = REWARD_LABELS[rw.status] ?? rw.status;
+          const statusBadge = `<span class="badge badge-${rw.status}">${escapeHtml(label)}</span>`;
           return `<tr><td>${escapeHtml(date)}</td><td>${escapeHtml(amount)}</td><td>${statusBadge}</td></tr>`;
         })
         .join('');
     }
 
     const totalPending = rewards
-      .filter((r) => r.status === 'pending' || r.status === 'approved')
+      .filter((r) => r.status === 'pending')
+      .reduce((sum, r) => sum + r.amount_pennies, 0);
+    const totalReady = rewards
+      .filter((r) => r.status === 'approved')
       .reduce((sum, r) => sum + r.amount_pennies, 0);
     const totalPaid = rewards
       .filter((r) => r.status === 'paid')
@@ -89,6 +146,7 @@ export function publicRoutes(deps: AppDeps): Router {
       referralUrl: escapeHtml(referralUrl),
       rewardsRows,
       totalPending: formatPennies(totalPending),
+      totalReady: formatPennies(totalReady),
       totalPaid: formatPennies(totalPaid)
     });
 

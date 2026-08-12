@@ -357,3 +357,29 @@ test('stats endpoint', async () => {
   assert(typeof stats.rewards_pennies.approved === 'number');
   assert(typeof stats.rewards_pennies.paid === 'number');
 });
+
+test('PWA: manifest and service worker are served', async () => {
+  const created = await admin('/api/admin/referrers', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'PWA Tester' }),
+  });
+  const { referral_code } = await j(created);
+
+  const manifestResp = await fetch(`${base}/card/${referral_code}/manifest.webmanifest`);
+  assert.equal(manifestResp.status, 200);
+  const manifest = await manifestResp.json();
+  assert.equal(manifest.start_url, `/card/${referral_code}`);
+  assert.equal(manifest.display, 'standalone');
+  assert(Array.isArray(manifest.icons) && manifest.icons.length >= 2);
+
+  const badManifest = await fetch(`${base}/card/NOPE1234/manifest.webmanifest`);
+  assert.equal(badManifest.status, 404);
+
+  const swResp = await fetch(`${base}/sw.js`);
+  assert.equal(swResp.status, 200);
+  assert((swResp.headers.get('content-type') || '').includes('javascript'));
+
+  const iconResp = await fetch(`${base}/icons/icon-192.png`);
+  assert.equal(iconResp.status, 200);
+});

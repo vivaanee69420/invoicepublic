@@ -94,10 +94,19 @@ option, per-practice, with a per-referral cap.
 - Rewards paid in cash vs. treatment credit may have different tax treatment — finance
   to confirm before payout method is fixed.
 
+## Decisions taken (Aug 2026)
+- **Payout method: treatment credit.** The referrer earns £25 off their next
+  treatment per completed referral — no cash payouts. Statuses are surfaced to
+  the patient as Pending → Ready to use → Redeemed.
+- **Delivery: installable web app (PWA).** The card page ships a per-referrer
+  manifest, service worker, and icons, so it installs to the patient's home
+  screen and opens straight to their QR code. Implemented in `apps/gold-card/`.
+
 ## Open questions
-1. Payout method: bank transfer, treatment credit, or voucher? (Treatment credit is
-   simplest and keeps value in the business.)
-2. Default reward: fixed £25 or £50? Per treatment band?
+1. ~~Payout method~~ — decided: treatment credit (see above).
+2. Default reward: £25 confirmed as launch default; revisit £50 via a
+   per-practice A/B once volume data exists (the rules engine supports
+   per-practice rules for exactly this).
 3. Does the 5% discount for the referred patient apply to all treatments or exclude
    already-discounted plans?
 4. SLA for first contact on a new referral inquiry?
