@@ -271,6 +271,58 @@ export function adminRoutes(deps: AppDeps): Router {
     res.json(updated);
   });
 
+  // Monthly whitening draw: one winner per calendar month, picked at random
+  // from every referrer who made at least one referral that month.
+  router.post('/api/admin/draw', admin, (req, res) => {
+    const month = String(req.body?.month || new Date().toISOString().slice(0, 7));
+    if (!/^\d{4}-\d{2}$/.test(month)) {
+      return res.status(400).json({ error: 'validation', detail: 'month must be YYYY-MM' });
+    }
+
+    const existing = deps.db.prepare(`
+      SELECT d.*, ref.name as referrer_name
+      FROM draws d JOIN referrers ref ON d.referrer_id = ref.id
+      WHERE d.month = ?
+    `).get(month);
+    if (existing) {
+      return res.json({ ...existing, already_drawn: true });
+    }
+
+    const candidates = deps.db.prepare(
+      "SELECT DISTINCT referrer_id FROM referrals WHERE substr(created_at, 1, 7) = ?"
+    ).all(month) as any[];
+    if (candidates.length === 0) {
+      return res.status(404).json({ error: 'no_entries', detail: `No referrals in ${month}` });
+    }
+
+    const winnerId = Number(candidates[Math.floor(Math.random() * candidates.length)].referrer_id);
+    const result = deps.db.prepare(
+      "INSERT INTO draws (month, referrer_id, prize) VALUES (?, ?, 'free_whitening_treatment')"
+    ).run(month, winnerId);
+
+    const winner = deps.db.prepare('SELECT id, name, phone FROM referrers WHERE id = ?').get(winnerId);
+    logEvent(deps.db, 'draw', Number(result.lastInsertRowid), 'draw.winner', { month, referrerId: winnerId });
+    notify(deps.db, 'sms', winner?.phone || null, 'draw_winner', { month, prize: 'free whitening treatment' });
+
+    res.status(201).json({
+      month,
+      referrer_id: winnerId,
+      referrer_name: winner?.name,
+      prize: 'free_whitening_treatment',
+      entries: candidates.length,
+      already_drawn: false,
+    });
+  });
+
+  router.get('/api/admin/draws', admin, (req, res) => {
+    const rows = deps.db.prepare(`
+      SELECT d.*, ref.name as referrer_name
+      FROM draws d JOIN referrers ref ON d.referrer_id = ref.id
+      ORDER BY d.month DESC LIMIT 24
+    `).all();
+    res.json(rows);
+  });
+
   router.get('/api/admin/stats', admin, (req, res) => {
     const referrerCount = (deps.db.prepare('SELECT COUNT(*) as count FROM referrers').get() as any).count;
 

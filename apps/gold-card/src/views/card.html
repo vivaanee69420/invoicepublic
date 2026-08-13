@@ -83,6 +83,10 @@
       line-height: 1.4;
     }
     .earn-banner strong { color: #d4af37; }
+    .perks { list-style: none; }
+    .perks li { padding-left: 1.5rem; position: relative; margin-bottom: 0.6rem; }
+    .perks li:last-child { margin-bottom: 0; }
+    .perks li::before { content: '★'; position: absolute; left: 0; color: #d4af37; }
     .install-copy { font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.75rem; line-height: 1.4; }
     .install-btn {
       width: 100%;
@@ -144,7 +148,11 @@
       <div class="card-hint">Ask your friend to scan this code</div>
     </div>
     <div class="earn-banner">
-      Earn <strong>£25 off your next treatment</strong> every time a friend you refer completes treatment with us.
+      <ul class="perks">
+        <li>Your friend receives a <strong>free consultation</strong> — plus 5% off their treatment plan</li>
+        <li>You receive <strong>£25 off your next treatment</strong> for every patient you refer who completes treatment</li>
+        <li>Every referral enters you into our <strong>monthly draw</strong> to win a <strong>free whitening treatment</strong></li>
+      </ul>
     </div>
     <div class="section" id="install-section" hidden>
       <div class="section-title">Add this card to your phone</div>
@@ -188,7 +196,7 @@
         </tbody>
       </table>
     </div>
-    <footer>Credits are added when your friend completes treatment and are redeemed against your next treatment at GM Dental. Terms apply.</footer>
+    <footer>Credits are added when your friend completes treatment and are redeemed against your next treatment at GM Dental. Monthly whitening draw: one winner per calendar month from all patients who referred that month. Terms apply.</footer>
   </div>
   <script>
     function copyLink() {

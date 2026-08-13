@@ -64,6 +64,16 @@ export function createDb(path: string): Db {
   `);
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS draws (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      month TEXT NOT NULL UNIQUE,
+      referrer_id INTEGER NOT NULL REFERENCES referrers(id),
+      prize TEXT NOT NULL DEFAULT 'free_whitening_treatment',
+      drawn_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  db.exec(`
     CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       entity TEXT NOT NULL,

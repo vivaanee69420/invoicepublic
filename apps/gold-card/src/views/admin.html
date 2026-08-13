@@ -278,6 +278,28 @@
         </table>
       </div>
     </div>
+
+    <div class="section">
+      <div class="section-title">Monthly whitening draw</div>
+      <div class="form-grid form-grid-2">
+        <input type="month" id="drawMonth" />
+        <button onclick="runDraw()">Run draw</button>
+      </div>
+      <p id="drawResult" style="margin: 0.75rem 0; color: #d4af37;"></p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Winner</th>
+              <th>Prize</th>
+              <th>Drawn</th>
+            </tr>
+          </thead>
+          <tbody id="drawsTable"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -331,6 +353,7 @@
     }
 
     async function refresh() {
+      loadDraws();
       const stats = await apiCall('GET', '/api/admin/stats');
       if (!stats) return;
 
@@ -470,6 +493,25 @@
     async function toggleRule(id, active) {
       await apiCall('PATCH', `/api/admin/reward-rules/${id}`, { active });
       refresh();
+    }
+
+    async function runDraw() {
+      const month = document.getElementById('drawMonth').value || new Date().toISOString().slice(0, 7);
+      const res = await apiCall('POST', '/api/admin/draw', { month });
+      if (!res) return;
+      const el = document.getElementById('drawResult');
+      el.textContent = res.already_drawn
+        ? `${res.month} already drawn — winner: ${res.referrer_name}`
+        : `Winner for ${res.month}: ${res.referrer_name} (from ${res.entries} entrant${res.entries === 1 ? '' : 's'}) — free whitening treatment!`;
+      loadDraws();
+    }
+
+    async function loadDraws() {
+      const draws = await apiCall('GET', '/api/admin/draws');
+      if (!draws) return;
+      document.getElementById('drawsTable').innerHTML = draws.map(d =>
+        `<tr><td>${d.month}</td><td>${d.referrer_name}</td><td>Free whitening</td><td>${new Date(d.drawn_at).toLocaleDateString()}</td></tr>`
+      ).join('') || '<tr><td colspan="4">No draws yet</td></tr>';
     }
 
     async function updateRewardStatus(id, status) {
