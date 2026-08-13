@@ -140,6 +140,40 @@ Response (second call):
 }
 ```
 
+## God Mode (owner dashboard)
+
+`/god` is the owner-level tier above per-site admin, protected by `GOD_MODE_KEY`
+(the god key is also accepted on every admin endpoint). It provides:
+
+- **Network overview** — referrers, referrals, completions, and referral revenue per practice, plus credit liability totals.
+- **All referrers across all practices** with lifetime numbers and direct card links.
+- **Manual credit grants** — goodwill gestures or prize fulfilment; reason is required and audit-logged; the credit appears on the patient's card as "Ready to use" immediately.
+- **Run refer-reminder nudges on demand** and inspect the full audit trail.
+
+## Refer-reminder nudges
+
+`POST /api/admin/nudges/run` messages every active referrer with **no referral
+and no reminder in the last `NUDGE_DAYS` days** (default 14) — push notification
+if they've installed the mobile app, SMS otherwise. Schedule it daily via cron:
+
+```cron
+0 10 * * * curl -s -X POST https://YOUR-DOMAIN/api/admin/nudges/run -H "x-admin-key: $ADMIN_API_KEY"
+```
+
+## Monthly whitening draw
+
+Every **referral** is one draw entry (three referrals in a month = three
+chances). `POST /api/admin/draw` picks the month's winner (idempotent — one
+winner per month), notifies them, and records it. Run it from the admin
+dashboard, God Mode, or cron on the 1st of each month.
+
+## Mobile apps (App Store / Play Store)
+
+See [`../gold-card-mobile/`](../gold-card-mobile/README.md) — a Capacitor
+shell that wraps this server into native iOS and Android apps with push
+notifications. The card page auto-registers device push tokens when running
+inside the app (`POST /api/device-token`).
+
 ## Testing
 
 Run the test suite:

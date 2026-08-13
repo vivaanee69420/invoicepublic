@@ -5,6 +5,8 @@ export interface Config {
   port: number;
   baseUrl: string;
   adminApiKey: string;
+  godApiKey: string;
+  nudgeDays: number;
   dbPath: string;
   ghlApiToken: string | null;
   ghlLocationId: string | null;
@@ -20,6 +22,13 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     console.warn('[gold-card] ADMIN_API_KEY is not set; using default value "change-me"');
   }
 
+  const godApiKey = env.GOD_MODE_KEY || 'god-change-me';
+  if (godApiKey === 'god-change-me') {
+    console.warn('[gold-card] GOD_MODE_KEY is not set; using default value "god-change-me"');
+  }
+
+  const nudgeDays = parseInt(env.NUDGE_DAYS || '14', 10);
+
   const dbPath = env.DB_PATH || 'data/goldcard.db';
   if (dbPath !== ':memory:') {
     const dir = path.dirname(dbPath);
@@ -33,6 +42,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     port,
     baseUrl,
     adminApiKey,
+    godApiKey,
+    nudgeDays,
     dbPath,
     ghlApiToken,
     ghlLocationId,

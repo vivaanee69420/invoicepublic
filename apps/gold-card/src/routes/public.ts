@@ -126,6 +126,10 @@ export function publicRoutes(deps: AppDeps): Router {
         .join('');
     }
 
+    const entriesThisMonth = (deps.db.prepare(
+      "SELECT COUNT(*) AS n FROM referrals WHERE referrer_id = ? AND substr(created_at, 1, 7) = strftime('%Y-%m', 'now')"
+    ).get(referrer.id) as any).n;
+
     const totalPending = rewards
       .filter((r) => r.status === 'pending')
       .reduce((sum, r) => sum + r.amount_pennies, 0);
@@ -145,6 +149,7 @@ export function publicRoutes(deps: AppDeps): Router {
       qrDataUrl,
       referralUrl: escapeHtml(referralUrl),
       rewardsRows,
+      entriesThisMonth: String(entriesThisMonth),
       totalPending: formatPennies(totalPending),
       totalReady: formatPennies(totalReady),
       totalPaid: formatPennies(totalPaid)
@@ -172,6 +177,26 @@ export function publicRoutes(deps: AppDeps): Router {
     });
 
     res.type('html').send(html);
+  });
+
+  // Native apps (Capacitor iOS/Android) register their push token against the
+  // referrer's card so refer-reminders and reward alerts can reach the device.
+  router.post('/api/device-token', (req, res) => {
+    const { code, token, platform } = req.body || {};
+    if (!code || !token || !platform) {
+      return res.status(400).json({ error: 'validation', detail: 'code, token, platform required' });
+    }
+    const referrer = deps.db.prepare(
+      'SELECT id FROM referrers WHERE referral_code = ?'
+    ).get(String(code)) as any;
+    if (!referrer) return res.status(404).json({ error: 'not_found' });
+
+    deps.db.prepare(
+      'INSERT INTO push_tokens (referrer_id, platform, token) VALUES (?, ?, ?) ' +
+      'ON CONFLICT(token) DO UPDATE SET referrer_id = excluded.referrer_id, platform = excluded.platform'
+    ).run(referrer.id, String(platform), String(token));
+    logEvent(deps.db, 'referrer', referrer.id, 'push_token.registered', { platform });
+    res.status(201).json({ ok: true });
   });
 
   router.post('/r/:code/inquiry', async (req, res) => {

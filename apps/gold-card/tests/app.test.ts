@@ -12,6 +12,8 @@ const config = {
   port: 0,
   baseUrl: 'http://localhost',
   adminApiKey: 'test-key',
+  godApiKey: 'god-test-key',
+  nudgeDays: 14,
   dbPath: ':memory:',
   ghlApiToken: null,
   ghlLocationId: null,
@@ -382,4 +384,99 @@ test('PWA: manifest and service worker are served', async () => {
 
   const iconResp = await fetch(`${base}/icons/icon-192.png`);
   assert.equal(iconResp.status, 200);
+});
+
+test('monthly draw: weighted by referrals, idempotent per month', async () => {
+  const first = await admin('/api/admin/draw', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  assert.equal(first.status, 201);
+  const draw = await j(first);
+  assert(draw.referrer_name);
+  assert(draw.entries >= 1);
+  assert.equal(draw.already_drawn, false);
+
+  const second = await admin('/api/admin/draw', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+  assert.equal(second.status, 200);
+  const again = await j(second);
+  assert.equal(again.already_drawn, true);
+  assert.equal(Number(again.referrer_id), Number(draw.referrer_id));
+});
+
+test('god mode: auth, overview, manual credit grant', async () => {
+  const noKey = await fetch(`${base}/api/god/overview`);
+  assert.equal(noKey.status, 401);
+
+  const godHeaders = { 'x-god-key': 'god-test-key', 'content-type': 'application/json' };
+  const overview = await fetch(`${base}/api/god/overview`, { headers: godHeaders });
+  assert.equal(overview.status, 200);
+  const o = await overview.json();
+  assert(Array.isArray(o.practices));
+  assert(o.credit_totals_pennies);
+
+  const refs = await fetch(`${base}/api/god/referrers`, { headers: godHeaders });
+  const refList = await refs.json();
+  assert(refList.length >= 1);
+  const target = refList[0];
+
+  const grant = await fetch(`${base}/api/god/credit`, {
+    method: 'POST',
+    headers: godHeaders,
+    body: JSON.stringify({ referrer_id: target.id, amount_pennies: 1500, reason: 'test goodwill credit' }),
+  });
+  assert.equal(grant.status, 201);
+  const granted = await grant.json();
+  assert.equal(granted.status, 'approved');
+
+  // Manual credit (no referral attached) must appear in the admin rewards list
+  const rewards = await j(await admin('/api/admin/rewards?status=approved'));
+  assert(rewards.some((r) => r.id === granted.reward_id));
+
+  // God key also works on admin endpoints
+  const adminViaGod = await fetch(`${base}/api/admin/stats`, { headers: { 'x-god-key': 'x', 'x-admin-key': 'god-test-key' } });
+  assert.equal(adminViaGod.status, 200);
+});
+
+test('device tokens and refer-reminder nudges', async () => {
+  const created = await admin('/api/admin/referrers', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name: 'Nudge Target', phone: '07700900777' }),
+  });
+  const { id: targetId, referral_code } = await j(created);
+
+  const reg = await fetch(`${base}/api/device-token`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ code: referral_code, token: 'fcm-test-token-1', platform: 'android' }),
+  });
+  assert.equal(reg.status, 201);
+
+  const badReg = await fetch(`${base}/api/device-token`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'NOPE1234', token: 't', platform: 'android' }),
+  });
+  assert.equal(badReg.status, 404);
+
+  const run1 = await j(await admin('/api/admin/nudges/run', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ days: 14 }),
+  }));
+  assert(run1.referrer_ids.includes(targetId));
+
+  // Second run within the window must not re-nudge the same referrer
+  const run2 = await j(await admin('/api/admin/nudges/run', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ days: 14 }),
+  }));
+  assert(!run2.referrer_ids.includes(targetId));
 });

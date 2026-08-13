@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GM Dental Gold Card</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, system-ui, sans-serif; background: #0f172a; color: #e2e8f0;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 2rem; }
+    .box { max-width: 420px; }
+    h1 { color: #d4af37; font-size: 1.4rem; }
+    input { width: 100%; padding: 0.9rem; margin: 1rem 0; background: #1e293b; border: 1px solid #334155;
+            border-radius: 0.5rem; color: #e2e8f0; font-size: 1.1rem; text-transform: uppercase; text-align: center;
+            letter-spacing: 0.2em; box-sizing: border-box; }
+    button { width: 100%; padding: 0.9rem; background: #d4af37; color: #0f172a; border: none; border-radius: 0.5rem;
+             font-weight: 700; font-size: 1rem; }
+    p { color: #94a3b8; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <!-- Offline / first-run fallback. Normally the app loads the remote server
+       (capacitor.config.ts server.url) and this page is never seen. If the
+       remote is unreachable, or on first run before a card is linked, this
+       page lets the patient enter their card code and continue. -->
+  <div class="box">
+    <h1>GM Dental · Gold Card</h1>
+    <p>Enter the card code from your invite message:</p>
+    <input id="code" maxlength="8" placeholder="E.g. AB12CD34" autocomplete="off">
+    <button onclick="openCard()">Open my card</button>
+    <p id="err" style="color:#ef4444"></p>
+  </div>
+  <script>
+    const saved = localStorage.getItem('goldcard_code');
+    if (saved) location.href = '/card/' + saved;
+    function openCard() {
+      const code = document.getElementById('code').value.trim().toUpperCase();
+      if (!/^[A-Z0-9]{8}$/.test(code)) {
+        document.getElementById('err').textContent = 'Card codes are 8 letters/numbers.';
+        return;
+      }
+      localStorage.setItem('goldcard_code', code);
+      location.href = '/card/' + code;
+    }
+  </script>
+</body>
+</html>

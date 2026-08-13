@@ -22,7 +22,9 @@ function generateCode(): string {
 function requireAdmin(deps: AppDeps) {
   return (req: Request, res: Response, next: NextFunction) => {
     const key = req.get('x-admin-key');
-    if (key !== deps.config.adminApiKey) {
+    // The God Mode key is a superset of admin access. An absent or empty key
+    // must never match an unset config value.
+    if (!key || (key !== deps.config.adminApiKey && key !== deps.config.godApiKey)) {
       return res.status(401).json({ error: 'unauthorized' });
     }
     next();
@@ -222,8 +224,7 @@ export function adminRoutes(deps: AppDeps): Router {
     let sql = `
       SELECT r.*, ref.name as referrer_name
       FROM rewards r
-      JOIN referrals rf ON r.referral_id = rf.id
-      JOIN referrers ref ON rf.referrer_id = ref.id
+      JOIN referrers ref ON r.referrer_id = ref.id
     `;
     const params: any[] = [];
 
@@ -288,8 +289,10 @@ export function adminRoutes(deps: AppDeps): Router {
       return res.json({ ...existing, already_drawn: true });
     }
 
+    // One entry per referral (not per referrer): a patient who referred three
+    // friends this month has three chances to win.
     const candidates = deps.db.prepare(
-      "SELECT DISTINCT referrer_id FROM referrals WHERE substr(created_at, 1, 7) = ?"
+      "SELECT referrer_id FROM referrals WHERE substr(created_at, 1, 7) = ?"
     ).all(month) as any[];
     if (candidates.length === 0) {
       return res.status(404).json({ error: 'no_entries', detail: `No referrals in ${month}` });
@@ -312,6 +315,52 @@ export function adminRoutes(deps: AppDeps): Router {
       entries: candidates.length,
       already_drawn: false,
     });
+  });
+
+  // Refer-reminder nudges: message every active referrer who hasn't referred
+  // anyone recently and hasn't already been nudged recently. Push if the
+  // referrer has a registered device, SMS otherwise. Run from cron (see README)
+  // or the God Mode dashboard.
+  router.post('/api/admin/nudges/run', admin, (req, res) => {
+    const days = parseInt(String(req.body?.days || deps.config.nudgeDays), 10);
+    if (!Number.isFinite(days) || days < 1) {
+      return res.status(400).json({ error: 'validation', detail: 'days must be a positive integer' });
+    }
+    const window = `-${days} days`;
+
+    const targets = deps.db.prepare(`
+      SELECT r.id, r.name, r.phone, r.referral_code FROM referrers r
+      WHERE r.status = 'active'
+        AND NOT EXISTS (
+          SELECT 1 FROM referrals f
+          WHERE f.referrer_id = r.id AND f.created_at >= datetime('now', ?)
+        )
+        AND NOT EXISTS (
+          SELECT 1 FROM nudges n
+          WHERE n.referrer_id = r.id AND n.sent_at >= datetime('now', ?)
+        )
+    `).all(window, window) as any[];
+
+    const nudged: number[] = [];
+    for (const t of targets) {
+      const tokens = deps.db.prepare(
+        'SELECT token FROM push_tokens WHERE referrer_id = ?'
+      ).all(t.id) as any[];
+      const cardUrl = `${deps.config.baseUrl}/card/${t.referral_code}`;
+      if (tokens.length > 0) {
+        for (const tok of tokens) {
+          notify(deps.db, 'push', tok.token, 'refer_reminder', { name: t.name, cardUrl });
+        }
+        deps.db.prepare("INSERT INTO nudges (referrer_id, channel) VALUES (?, 'push')").run(t.id);
+      } else {
+        notify(deps.db, 'sms', t.phone || null, 'refer_reminder', { name: t.name, cardUrl });
+        deps.db.prepare("INSERT INTO nudges (referrer_id, channel) VALUES (?, 'sms')").run(t.id);
+      }
+      nudged.push(Number(t.id));
+    }
+
+    logEvent(deps.db, 'nudge', 'batch', 'nudges.run', { days, count: nudged.length });
+    res.json({ nudged: nudged.length, referrer_ids: nudged });
   });
 
   router.get('/api/admin/draws', admin, (req, res) => {

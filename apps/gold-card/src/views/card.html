@@ -87,6 +87,33 @@
     .perks li { padding-left: 1.5rem; position: relative; margin-bottom: 0.6rem; }
     .perks li:last-child { margin-bottom: 0; }
     .perks li::before { content: '★'; position: absolute; left: 0; color: #d4af37; }
+    .entries-chip {
+      margin-top: 1rem;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid #d4af37;
+      border-radius: 999px;
+      padding: 0.5rem 1rem;
+      display: inline-block;
+      font-size: 0.875rem;
+    }
+    .entries-chip strong { color: #d4af37; }
+    .share-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .share-btn {
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      background: #1e293b;
+      border: 1px solid #d4af37;
+      color: #d4af37;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+    }
+    .share-btn:hover { background: #263449; }
+    .share-btn.whatsapp { border-color: #25d366; color: #25d366; }
     .install-copy { font-size: 0.875rem; color: #94a3b8; margin-bottom: 0.75rem; line-height: 1.4; }
     .install-btn {
       width: 100%;
@@ -153,6 +180,7 @@
         <li>You receive <strong>£25 off your next treatment</strong> for every patient you refer who completes treatment</li>
         <li>Every referral enters you into our <strong>monthly draw</strong> to win a <strong>free whitening treatment</strong></li>
       </ul>
+      <div class="entries-chip">🎟 Your draw entries this month: <strong>{{entriesThisMonth}}</strong></div>
     </div>
     <div class="section" id="install-section" hidden>
       <div class="section-title">Add this card to your phone</div>
@@ -165,6 +193,10 @@
       <div class="share-link">
         <input type="text" value="{{referralUrl}}" readonly>
         <button onclick="copyLink()">Copy</button>
+      </div>
+      <div class="share-buttons">
+        <a class="share-btn whatsapp" id="whatsapp-share" href="#">Share on WhatsApp</a>
+        <button class="share-btn" id="native-share" hidden>Share…</button>
       </div>
     </div>
     <div class="section">
@@ -209,6 +241,43 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js');
     }
+
+    // Share buttons
+    const referralUrl = document.querySelector('.share-link input').value;
+    const shareText = 'I go to GM Dental — scan my Gold Card and you get a FREE consultation plus 5% off your treatment plan: ' + referralUrl;
+    document.getElementById('whatsapp-share').href = 'https://wa.me/?text=' + encodeURIComponent(shareText);
+    const nativeShareBtn = document.getElementById('native-share');
+    if (navigator.share) {
+      nativeShareBtn.hidden = false;
+      nativeShareBtn.addEventListener('click', () => {
+        navigator.share({ title: 'GM Dental Gold Card', text: shareText, url: referralUrl }).catch(() => {});
+      });
+    }
+
+    // Native app (Capacitor): register this device for push notifications so
+    // refer-reminders and reward alerts reach the phone.
+    (async () => {
+      const cap = window.Capacitor;
+      if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return;
+      const PN = cap.Plugins && cap.Plugins.PushNotifications;
+      if (!PN) return;
+      try {
+        const perm = await PN.requestPermissions();
+        if (perm.receive !== 'granted') return;
+        PN.addListener('registration', (t) => {
+          fetch('/api/device-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code: document.querySelector('.card-code').textContent.trim(),
+              token: t.value,
+              platform: cap.getPlatform(),
+            }),
+          });
+        });
+        await PN.register();
+      } catch (e) { /* push unavailable — card still works */ }
+    })();
 
     // Install prompt: hide entirely when already running as an installed app.
     const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;

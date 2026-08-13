@@ -53,13 +53,32 @@ export function createDb(path: string): Db {
   db.exec(`
     CREATE TABLE IF NOT EXISTS rewards (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      referral_id INTEGER NOT NULL REFERENCES referrals(id),
+      referral_id INTEGER REFERENCES referrals(id),
       referrer_id INTEGER NOT NULL REFERENCES referrers(id),
       rule_id INTEGER REFERENCES reward_rules(id),
       amount_pennies INTEGER NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','paid','void')),
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       decided_at TEXT
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS push_tokens (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      referrer_id INTEGER NOT NULL REFERENCES referrers(id),
+      platform TEXT NOT NULL,
+      token TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )
+  `);
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS nudges (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      referrer_id INTEGER NOT NULL REFERENCES referrers(id),
+      channel TEXT NOT NULL,
+      sent_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `);
 
