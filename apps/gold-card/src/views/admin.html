@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin · GM Dental Gold Card</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 1rem;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+    }
+    .topbar h1 {
+      color: #d4af37;
+      font-size: 1.5rem;
+      margin: 0;
+    }
+    .key-input {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .key-input input {
+      padding: 0.5rem;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #e2e8f0;
+    }
+    .key-input input:focus {
+      outline: none;
+      border-color: #d4af37;
+    }
+    .key-input button, .refresh-btn {
+      padding: 0.5rem 1rem;
+      background: #d4af37;
+      color: #0f172a;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .key-input button:hover, .refresh-btn:hover { background: #e8c547; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      color: #d4af37;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .error {
+      color: #ef4444;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: rgba(239, 68, 68, 0.1);
+      border-radius: 0.375rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: #1e293b;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      border-left: 4px solid #d4af37;
+    }
+    .stat-label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; }
+    .stat-value { font-size: 1.5rem; color: #d4af37; font-weight: 700; margin-top: 0.5rem; }
+    .form-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      background: #1e293b;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+    .form-grid-2 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    input, select, textarea {
+      padding: 0.75rem;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 0.375rem;
+      color: #e2e8f0;
+      font-size: 0.875rem;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #d4af37;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      background: #d4af37;
+      color: #0f172a;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    button:hover { background: #e8c547; }
+    button.danger { background: #ef4444; color: white; }
+    button.danger:hover { background: #dc2626; }
+    .table-wrapper {
+      overflow-x: auto;
+      background: #1e293b;
+      border-radius: 0.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #334155;
+      padding: 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      color: #d4af37;
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.75rem;
+      border-top: 1px solid #334155;
+      font-size: 0.875rem;
+    }
+    tr:hover { background: rgba(212, 175, 55, 0.05); }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-new { background: #3b82f6; color: #eff6ff; }
+    .badge-contacted { background: #06b6d4; color: #ecfdfd; }
+    .badge-booked { background: #f59e0b; color: #fef3c7; }
+    .badge-attended { background: #8b5cf6; color: #faf5ff; }
+    .badge-treatment_agreed { background: #ec4899; color: #fce7f3; }
+    .badge-treatment_completed { background: #10b981; color: #ecfdf5; }
+    .badge-lost { background: #6b7280; color: #f3f4f6; }
+    .badge-pending { background: #fbbf24; color: #78350f; }
+    .badge-approved { background: #10b981; color: #ecfdf5; }
+    .badge-paid { background: #8b5cf6; color: #faf5ff; }
+    .badge-void { background: #6b7280; color: #f3f4f6; }
+    select.status-select { width: auto; padding: 0.5rem; }
+    .success { color: #10b981; font-size: 0.875rem; margin-top: 0.5rem; }
+    .link-text { color: #d4af37; text-decoration: none; word-break: break-all; }
+    .link-text:hover { text-decoration: underline; }
+    .action-cell { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .action-cell button, .action-cell select { margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>GM Dental · Admin</h1>
+    <div class="key-input">
+      <input type="password" id="adminKey" placeholder="Admin key" />
+      <button onclick="saveKey()">Save</button>
+      <button class="refresh-btn" onclick="refresh()">Refresh</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="error" class="error" style="display:none;"></div>
+
+    <div class="section">
+      <div class="section-title">Dashboard</div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">New Referrer</div>
+      <div class="form-grid form-grid-2">
+        <input type="text" id="refName" placeholder="Name *" />
+        <input type="tel" id="refPhone" placeholder="Phone" />
+        <input type="email" id="refEmail" placeholder="Email" />
+        <input type="text" id="refPractice" placeholder="Practice ID" />
+        <button onclick="createReferrer()" style="grid-column: 1/-1;">Create Referrer</button>
+        <div id="refStatus" style="grid-column: 1/-1;"></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Referrals</div>
+      <div style="margin-bottom: 1rem;">
+        <select id="filterStatus" onchange="refresh()">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="booked">Booked</option>
+          <option value="attended">Attended</option>
+          <option value="treatment_agreed">Treatment Agreed</option>
+          <option value="treatment_completed">Treatment Completed</option>
+          <option value="lost">Lost</option>
+        </select>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Referrer</th>
+              <th>Prospect</th>
+              <th>Treatment</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="referralsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Reward Rules</div>
+      <div class="form-grid form-grid-2">
+        <input type="text" id="rulePractice" placeholder="Practice ID (blank = global)" />
+        <select id="ruleType">
+          <option value="fixed">Fixed</option>
+          <option value="percent">Percent</option>
+        </select>
+        <input type="number" id="ruleValue" placeholder="Value (pennies for fixed, e.g. 2500 = £25 credit; % for percent)" />
+        <input type="number" id="ruleCap" placeholder="Cap (pennies, optional)" />
+        <input type="number" id="ruleMin" placeholder="Min treatment value (pennies)" />
+        <button onclick="createRule()" style="grid-column: 1/-1;">Create Rule</button>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Practice</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Cap</th>
+              <th>Min Value</th>
+              <th>Active</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rulesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Rewards</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Referrer</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="rewardsTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Monthly whitening draw</div>
+      <div class="form-grid form-grid-2">
+        <input type="month" id="drawMonth" />
+        <button onclick="runDraw()">Run draw</button>
+      </div>
+      <p id="drawResult" style="margin: 0.75rem 0; color: #d4af37;"></p>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Winner</th>
+              <th>Prize</th>
+              <th>Drawn</th>
+            </tr>
+          </thead>
+          <tbody id="drawsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STATUS_FLOW = {
+      'new': ['contacted', 'lost'],
+      'contacted': ['booked', 'lost'],
+      'booked': ['attended', 'lost'],
+      'attended': ['treatment_agreed', 'lost'],
+      'treatment_agreed': ['treatment_completed', 'lost'],
+      'treatment_completed': [],
+      'lost': []
+    };
+
+    function getKey() { return localStorage.getItem('goldcard_admin_key') || ''; }
+    function saveKey() {
+      localStorage.setItem('goldcard_admin_key', document.getElementById('adminKey').value);
+      refresh();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+
+    async function apiCall(method, path, body = null) {
+      const opts = {
+        method,
+        headers: {
+          'x-admin-key': getKey(),
+          'Content-Type': 'application/json'
+        }
+      };
+      if (body) opts.body = JSON.stringify(body);
+      try {
+        const res = await fetch(path, opts);
+        if (res.status === 401) {
+          showError('Bad admin key');
+          return null;
+        }
+        if (!res.ok) {
+          showError(`Error: ${res.status}`);
+          return null;
+        }
+        return await res.json();
+      } catch (e) {
+        showError('Network error');
+        return null;
+      }
+    }
+
+    async function refresh() {
+      loadDraws();
+      const stats = await apiCall('GET', '/api/admin/stats');
+      if (!stats) return;
+
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card"><div class="stat-label">Referrers</div><div class="stat-value">${stats.referrers}</div></div>
+        <div class="stat-card"><div class="stat-label">Inquiries</div><div class="stat-value">${stats.inquiries}</div></div>
+        <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value">${stats.completed}</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">£${(stats.rewards_pennies.pending / 100).toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-value">£${(stats.rewards_pennies.approved / 100).toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Redeemed</div><div class="stat-value">£${(stats.rewards_pennies.paid / 100).toFixed(2)}</div></div>
+      `;
+
+      const status = document.getElementById('filterStatus').value;
+      const referrals = await apiCall('GET', `/api/admin/referrals?status=${status}`);
+      if (referrals) {
+        document.getElementById('referralsTable').innerHTML = referrals.map((r) => {
+          const actions = (STATUS_FLOW[r.status] || []).map(s => `<option value="${s}">${s}</option>`).join('');
+          return `
+            <tr>
+              <td>${r.id}</td>
+              <td>${r.referrer_name}</td>
+              <td>${r.prospect_name}</td>
+              <td>${r.treatment_interest}</td>
+              <td><span class="badge badge-${r.status}">${r.status}</span></td>
+              <td>${new Date(r.updated_at).toLocaleDateString()}</td>
+              <td class="action-cell">
+                <select class="status-select" onchange="updateReferralStatus(${r.id}, this.value, this)">
+                  <option value="">---</option>
+                  ${actions}
+                </select>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      const rules = await apiCall('GET', '/api/admin/reward-rules');
+      if (rules) {
+        document.getElementById('rulesTable').innerHTML = rules.map((r) => `
+          <tr>
+            <td>${r.id}</td>
+            <td>${r.practice_id || 'Global'}</td>
+            <td>${r.type}</td>
+            <td>${r.value}</td>
+            <td>${r.cap_pennies || '-'}</td>
+            <td>${r.min_treatment_value_pennies || '-'}</td>
+            <td>${r.active ? 'Yes' : 'No'}</td>
+            <td class="action-cell"><button onclick="toggleRule(${r.id}, ${r.active ? 0 : 1})">${r.active ? 'Disable' : 'Enable'}</button></td>
+          </tr>
+        `).join('');
+      }
+
+      const rewards = await apiCall('GET', '/api/admin/rewards');
+      if (rewards) {
+        document.getElementById('rewardsTable').innerHTML = rewards.map((r) => {
+          const acts = [];
+          if (r.status === 'pending') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'approved')">Approve</button>`);
+          if (r.status === 'pending' || r.status === 'approved') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'void')" class="danger">Void</button>`);
+          if (r.status === 'approved') acts.push(`<button onclick="updateRewardStatus(${r.id}, 'paid')">Mark Redeemed</button>`);
+          return `
+            <tr>
+              <td>${r.id}</td>
+              <td>${r.referrer_name}</td>
+              <td>£${(r.amount_pennies / 100).toFixed(2)}</td>
+              <td><span class="badge badge-${r.status}">${r.status}</span></td>
+              <td>${new Date(r.created_at).toLocaleDateString()}</td>
+              <td class="action-cell">${acts.join(' ')}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    async function createReferrer() {
+      const name = document.getElementById('refName').value;
+      if (!name) {
+        showError('Name required');
+        return;
+      }
+      const res = await apiCall('POST', '/api/admin/referrers', {
+        name,
+        phone: document.getElementById('refPhone').value || null,
+        email: document.getElementById('refEmail').value || null,
+        practice_id: document.getElementById('refPractice').value || null
+      });
+      if (res) {
+        document.getElementById('refStatus').innerHTML = `
+          <div class="success">Created!</div>
+          <div>Card: <a href="${res.card_url}" class="link-text" target="_blank">${res.card_url}</a></div>
+          <div>Code: <strong>${res.referral_code}</strong></div>
+        `;
+        document.getElementById('refName').value = '';
+        document.getElementById('refPhone').value = '';
+        document.getElementById('refEmail').value = '';
+        document.getElementById('refPractice').value = '';
+        refresh();
+      }
+    }
+
+    async function updateReferralStatus(id, status, el) {
+      if (!status) return;
+      let body = { status };
+      if (status === 'treatment_completed') {
+        const val = prompt('Treatment value (£):');
+        if (!val) { if (el) el.value = ''; return; }
+        body.treatment_value_pennies = Math.round(parseFloat(val) * 100);
+      } else if (status === 'lost') {
+        body.lost_reason = prompt('Lost reason:');
+      }
+      const res = await apiCall('PATCH', `/api/admin/referrals/${id}`, body);
+      if (res) refresh();
+      else if (el) el.value = '';
+    }
+
+    async function createRule() {
+      const val = document.getElementById('ruleValue').value;
+      if (!val) {
+        showError('Value required');
+        return;
+      }
+      const res = await apiCall('POST', '/api/admin/reward-rules', {
+        practice_id: document.getElementById('rulePractice').value || null,
+        type: document.getElementById('ruleType').value,
+        value: parseInt(val),
+        cap_pennies: document.getElementById('ruleCap').value ? parseInt(document.getElementById('ruleCap').value) : null,
+        min_treatment_value_pennies: document.getElementById('ruleMin').value ? parseInt(document.getElementById('ruleMin').value) : null
+      });
+      if (res) {
+        document.getElementById('rulePractice').value = '';
+        document.getElementById('ruleValue').value = '';
+        document.getElementById('ruleCap').value = '';
+        document.getElementById('ruleMin').value = '';
+        refresh();
+      }
+    }
+
+    async function toggleRule(id, active) {
+      await apiCall('PATCH', `/api/admin/reward-rules/${id}`, { active });
+      refresh();
+    }
+
+    async function runDraw() {
+      const month = document.getElementById('drawMonth').value || new Date().toISOString().slice(0, 7);
+      const res = await apiCall('POST', '/api/admin/draw', { month });
+      if (!res) return;
+      const el = document.getElementById('drawResult');
+      el.textContent = res.already_drawn
+        ? `${res.month} already drawn — winner: ${res.referrer_name}`
+        : `Winner for ${res.month}: ${res.referrer_name} (from ${res.entries} entrant${res.entries === 1 ? '' : 's'}) — free whitening treatment!`;
+      loadDraws();
+    }
+
+    async function loadDraws() {
+      const draws = await apiCall('GET', '/api/admin/draws');
+      if (!draws) return;
+      document.getElementById('drawsTable').innerHTML = draws.map(d =>
+        `<tr><td>${d.month}</td><td>${d.referrer_name}</td><td>Free whitening</td><td>${new Date(d.drawn_at).toLocaleDateString()}</td></tr>`
+      ).join('') || '<tr><td colspan="4">No draws yet</td></tr>';
+    }
+
+    async function updateRewardStatus(id, status) {
+      const res = await apiCall('PATCH', `/api/admin/rewards/${id}`, { status });
+      if (res) refresh();
+    }
+
+    document.getElementById('adminKey').value = getKey();
+    refresh();
+  </script>
+</body>
+</html>
